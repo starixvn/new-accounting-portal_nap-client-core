@@ -1,0 +1,115 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    Layout = "_Layout";
+}
+
+<h3 class="text-center">Introduction to integrate NAP Client for ASP.NET Core app (.NET Framework)</h3>
+<h4>
+    I. Inject new <b>NapSettings</b>
+</h4>
+<b>Startup.cs</b>
+<pre class="lang-csharp">
+<code>
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.Configure&lt;NapSettings>(Configuration.GetSection("NapSettings"));
+            services.AddMvc();
+        }
+    </code>
+</pre>
+<pre class="lang-csharp">
+<code>
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            //...
+            using (var serviceScope = app.ApplicationServices.CreateScope())
+            {
+                var napSettings = serviceScope.ServiceProvider.GetService&lt;IOptions&lt;NapSettings>>();
+                NapSettings.Configure(napSettings.Value);
+            }
+        }
+    </code>
+</pre>
+
+<h4 style="margin-top: 20px">
+    II. Using NAP Session and Authorization Attribute
+</h4>
+
+<div><b>1. Install Fanex.Nap.Client.Auth <a href="http://nuget.nexdev.net/packages/Fanex.Nap.Client.Auth/1.0.0-beta">Package</a> </b></div>
+
+<b>2. Configure session</b>
+<pre class="lang-csharp">
+<code>
+    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+    {
+        //...
+        services.AddMemoryCache();
+        services.AddMvc().AddSessionStateTempDataProvider();
+        services.AddSession();
+        services.AddScoped&lt;INapSession, NapSession>();
+        services.AddSingleton&lt;IHttpContextAccessor, HttpContextAccessor>();
+        services.AddSingleton&lt;IActionContextAccessor, ActionContextAccessor>();
+    }
+    </code>
+</pre>
+
+<b>3. Configure cookie authentication</b>
+<pre class="lang-csharp">
+<code>
+    public void ConfigureServices(IServiceCollection services)
+    {
+        //...
+        services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Login/Index";
+                    options.LogoutPath = "/Login/Logout";
+                    options.Events.OnSigningOut = context =>
+                    {
+                        context.Response.Redirect(options.LoginPath);
+                        return Task.CompletedTask;
+                    };
+                });
+    }
+    </code>
+</pre>
+
+
+<b>4. Using session & authentication</b>
+<pre class="lang-csharp">
+<code>
+    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            //...
+            app.UseSession();
+            app.UseAuthentication();
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Login}/{action=Index}/{id?}");
+            });
+        }
+    </code>
+</pre>
+
+<b>5. Using NAP Auth Attribute</b>
+<pre class="lang-csharp">
+<code>
+    [NapSuperAuth]
+    public class HomeController : Controller
+    {
+        [NapAuth(FunctionKey = "Home", Policy = Constant.Policy.Read, PermissionCache = true)]
+        public IActionResult Index()
+        {
+            return View();
+        }
+    }
+    </code>
+</pre>
+
+
+<script type="text/javascript">
+
+    setTimeout(function () { location.reload(); }, 1000);
+</script>

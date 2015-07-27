@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageReleaseNotes>
+      - Only support net 8+
+    </PackageReleaseNotes>
+    <Version>2.0.2.1</Version>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <Title>Fanex.NAP.SignIn</Title>
+    <Description>Lightweigt sign in component for all NAP sites</Description>
+    <Copyright>NexDev</Copyright>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="ONEbook.UM.AspNetCore" Version="3.1.1.1" />
+    <PackageReference Include="ONEbook.UM.AspNetCore.Filters" Version="3.1.1.1" />
+    <PackageReference Include="ONEbook.UM.Transport" Version="3.1.2" />
+  </ItemGroup>
+ 
+  <ItemGroup>
+    <ProjectReference Include="..\Fanex.NAP.Client\Fanex.NAP.Client.csproj" />
+  </ItemGroup>
+ 
+
+</Project>

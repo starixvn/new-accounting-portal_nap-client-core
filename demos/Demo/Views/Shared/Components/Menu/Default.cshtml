@@ -1,0 +1,18 @@
+﻿@model Demo.Models.MenuViewModel
+
+<ul class="nav navbar-nav">
+    @foreach (var item in Model.MenuItems)
+    {
+        <li>
+            <a href=@Url.Content(item.ValidUrl)>@item.Name</a>
+        </li>
+    }
+</ul>
+<ul class="nav navbar-nav navbar-right">
+    <li>
+        <a asp-area="" asp-controller="Home" asp-action="Index">Hi, @Model.UserName</a>
+    </li>
+    <li>
+        <a asp-area="" asp-controller="Login" asp-action="Logout">Sign out</a>
+    </li>
+</ul>
