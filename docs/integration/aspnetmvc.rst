@@ -1,30 +1,30 @@
-ASP.NET MVC
+ASP.NET Core
 ==============
 
 Install
 -------
 
-`ONEbook.UM.AspNetMVC`_
+`Fanex.NAP.Client.AspNetMVC`_
 
-`ONEbook.UM.Transport`_
+`Fanex.NAP.Client.Transport`_
+
 
 Configuration
 -------------
 
-Please add to *appSettings* section in your *web.config* file
+Please add to your *web.config* file
 
 .. code:: xml
 
-       <add key="ONEbook.UM:ServiceUri" value="http://ha.nexdev.net:8889/api" />
-       <add key="ONEbook.UM:EnableCheckUM" value="true" />
-       <add key="ONEbook.UM:SiteId" value="2000000" />
-       <add key="ONEbook.UM:EnableUnscheduledUM" value="false" />
-       <add key="ONEbook.UM:UMFrom" value="3:00" />
-       <add key="ONEbook.UM:UMTo" value="4:00" />
-       <add key="ONEbook.UM:UMPageUrl" value="/UserLogin/Common/Offline" />
-       <add key="ONEbook.UM:ResultCacheDuration" value="60" />
-       <add key="ONEbook.UM:UMLoggingCategory" value="ONEbook-UM" />
-       <add key="ONEbook.UM:ErrorUMPageUrl" value="" />
+    <add key="Fanex.NAP.Client:Environment" value="UAT" />
+    <add key="Fanex.NAP.Client:SiteId" value="105" />
+    <add key="Fanex.NAP.Client:UnauthorizeUrl" value="~/Common/Unauthorize" />
+    <add key="Fanex.NAP.Client:ServiceUrls" value="http://ha.nexdev.net:1710/api" />
+    <add key="Fanex.NAP.Client:AccessKey" value="Czl6CxZgAX8e6h+Tqf6InhfilmoHEO03XeS7qQgVmkE=" />
+    <add key="Fanex.NAP.Client:CacheDuration" value="20" />
+    <add key="Fanex.NAP.Client:EnableDirectLogin" value="false" />
+    <add key="Fanex.NAP.Client:EnableReCheckIn" value="false" />
+    <add key="Fanex.NAP.Client:HubUrl" value="http://ha.nexdev.net:1710/api" />
 
 Integration
 -----------
@@ -33,21 +33,45 @@ Please add these code lines to your *Global.asax* file
 
 .. code:: csharp
 
-       var umConfig = new UMClientConfiguration();
-       UMClientManager
-           .UseConfig(umConfig)
-           .UseRestClient(new RestClient(umConfig))
-           .UseHttpContext(new HttpContextHelper())
-           .AddErrorHandler(errorHandler);
+       
+       protected void Application_Start() {
+           ...
+           var napSettings = new NapSettings();
+           NapClientManager
+                .UseConfig(napSettings)
+                .UseRestClient(new RestClient(napSettings))
+                .UseSession(new NapSession());
+       }
+
+
 
 Usage
-^^^^^
+--------
+
+1) Using client to get information
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: csharp
 
-       var maintenanceService = new MaintenanceService(); 
-       var underMaintenanceInfo = await maintenanceService.GetUnderMaintenance
+       var userService = new UserService(); 
+       var user = userService.Get(userName);
 
-.. _ONEbook.UM.AspNetCore: http://nuget.nexdev.net/packages/ONEbook.UM.AspNetCore/
-.. _ONEbook.UM.Transport: http://nuget.nexdev.net/packages/ONEbook.UM.Transport/
-.. _ONEbook.UM.AspNetMVC: http://nuget.nexdev.net/packages/ONEbook.UM.AspNetMVC/
+2)  Using NAP Auth Attribute
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: csharp
+
+    [NapSuperAuth]
+    public class HomeController : Controller
+    {
+        [NapAuth(FunctionKey = "Home", Policy = Constant.Policy.Read, PermissionCache = true)]
+        public IActionResult Index()
+        {
+            return View();
+        }
+    }
+
+
+
+.. _Fanex.NAP.Client.AspNetMVC: http://nuget.nexdev.net/packages/Fanex.NAP.Client.AspNetMVC/
+.. _Fanex.NAP.Client.Transport: http://nuget.nexdev.net/packages/Fanex.NAP.Client.Transport/

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Web;
+    using Fanex.NAP.Client;
     using Fanex.NAP.Client.Configuration;
     using Fanex.NAP.Client.Helpers.Web;
     using Fanex.NAP.Client.Models;
@@ -30,7 +31,7 @@
 
         public NapSession(INapSettings napSettings = null)
         {
-            this.napSettings = napSettings ?? new NapSettings();
+            this.napSettings = napSettings ?? NapClientManager.NapSettings;
         }
 
         public string UserName

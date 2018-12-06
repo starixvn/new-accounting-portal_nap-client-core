@@ -4,5 +4,8 @@
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <Version>2.0.0-beta1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>Fanex.NAP.Core.Client</PackageId>
+    <Authors>RnD Team</Authors>
+    <Company>Nexcel Solution</Company>
   </PropertyGroup>
 </Project>

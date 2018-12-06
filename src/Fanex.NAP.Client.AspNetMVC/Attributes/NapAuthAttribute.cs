@@ -22,14 +22,14 @@
         private readonly INapSettings napSettings;
         private Constant.Policy policy;
 
-        public NapAuthAttribute()
+        public NapAuthAttribute() : this(null, null)
         {
         }
 
         internal NapAuthAttribute(IUserService userService, INapSettings napSettings)
         {
             this.userService = userService ?? new UserService();
-            this.napSettings = napSettings ?? new NapSettings();
+            this.napSettings = napSettings ?? NapClientManager.NapSettings;
         }
 
         public string FunctionKey { get; set; }
