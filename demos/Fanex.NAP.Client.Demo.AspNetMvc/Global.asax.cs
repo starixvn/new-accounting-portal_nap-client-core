@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Optimization;
-using System.Web.Routing;
-using Fanex.NAP.Client.Transport;
-using Fanex.NAP.Core.Configuration;
-using Fanex.NAP.Core.Web.Session;
-
-namespace Fanex.NAP.Client.Demo.AspNetMvc
+﻿namespace Fanex.NAP.Client.Demo.AspNetMvc
 {
+    using System.Web.Mvc;
+    using System.Web.Optimization;
+    using System.Web.Routing;
+    using Fanex.NAP.Client.Transport;
+    using Fanex.NAP.Core.Configuration;
+    using Fanex.NAP.Core.Web.Session;
+
     public class MvcApplication : System.Web.HttpApplication
     {
         protected void Application_Start()

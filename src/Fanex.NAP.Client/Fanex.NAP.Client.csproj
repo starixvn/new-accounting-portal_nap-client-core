@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
-    <Version>2.0.0-beta1</Version>
+    <Version>2.0.0-beta02</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Fanex.NAP.Core.Client</PackageId>
     <Authors>RnD Team</Authors>

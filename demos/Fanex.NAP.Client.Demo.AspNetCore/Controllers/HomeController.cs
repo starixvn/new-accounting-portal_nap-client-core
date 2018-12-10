@@ -3,6 +3,7 @@
     using System.Diagnostics;
     using Fanex.Nap.Client.AspNetCore.DemoSite.Models;
     using Fanex.NAP.Client.AspNetCore.Attributes;
+    using Fanex.NAP.Client.Services;
     using Fanex.NAP.Core.Business;
     using Microsoft.AspNetCore.Mvc;
 
@@ -12,6 +13,9 @@
         [NapAuth(FunctionKey = "Home", Policy = Constant.Policy.Read, PermissionCache = true)]
         public IActionResult Index()
         {
+            var menuItem = new SiteService().GetMenuItemBySiteId(1, "UAT");
+            var group = new GroupService().Get(23);
+
             return View();
         }
 

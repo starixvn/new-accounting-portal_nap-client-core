@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demos", "demos", "{E25616D8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client", "src\Fanex.NAP.Client\Fanex.NAP.Client.csproj", "{BBBEBE10-B8D5-4945-9A14-AFA514ACD492}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fanex.NAP.Client.Tests", "tests\Fanex.NAP.Client.Tests\Fanex.NAP.Client.Tests.csproj", "{5F47F45D-335D-4AE0-9EF2-E0997C62E24C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client.Transport", "src\Fanex.NAP.Client.Transport\Fanex.NAP.Client.Transport.csproj", "{96555763-EAB6-4ED8-87AF-0B16E4D5992D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client.AspNetMVC", "src\Fanex.NAP.Client.AspNetMVC\Fanex.NAP.Client.AspNetMVC.csproj", "{0734CF8A-83D7-479B-A846-1253290F2834}"
@@ -22,6 +20,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client.Demo.AspNetCore", "demos\Fanex.NAP.Client.Demo.AspNetCore\Fanex.NAP.Client.Demo.AspNetCore.csproj", "{D380E42B-686D-4099-91BD-213CA1D4E7F1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fanex.NAP.Client.Demo.AspNetMvc", "demos\Fanex.NAP.Client.Demo.AspNetMvc\Fanex.NAP.Client.Demo.AspNetMvc.csproj", "{CCEC6400-2CCA-46B0-B4DB-5B893B5377B0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.Nap.Client.Integration.Tests", "tests\Fanex.Nap.Client.Integration.Tests\Fanex.Nap.Client.Integration.Tests.csproj", "{DF4A64F7-011F-4241-B429-8D746EA4DC60}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,10 +33,6 @@ Global
 		{BBBEBE10-B8D5-4945-9A14-AFA514ACD492}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBBEBE10-B8D5-4945-9A14-AFA514ACD492}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBBEBE10-B8D5-4945-9A14-AFA514ACD492}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5F47F45D-335D-4AE0-9EF2-E0997C62E24C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5F47F45D-335D-4AE0-9EF2-E0997C62E24C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5F47F45D-335D-4AE0-9EF2-E0997C62E24C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5F47F45D-335D-4AE0-9EF2-E0997C62E24C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{96555763-EAB6-4ED8-87AF-0B16E4D5992D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{96555763-EAB6-4ED8-87AF-0B16E4D5992D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96555763-EAB6-4ED8-87AF-0B16E4D5992D}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -57,18 +53,22 @@ Global
 		{CCEC6400-2CCA-46B0-B4DB-5B893B5377B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCEC6400-2CCA-46B0-B4DB-5B893B5377B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCEC6400-2CCA-46B0-B4DB-5B893B5377B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF4A64F7-011F-4241-B429-8D746EA4DC60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF4A64F7-011F-4241-B429-8D746EA4DC60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF4A64F7-011F-4241-B429-8D746EA4DC60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF4A64F7-011F-4241-B429-8D746EA4DC60}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BBBEBE10-B8D5-4945-9A14-AFA514ACD492} = {18FD23D1-4AB1-4057-B60E-AF481F9D7167}
-		{5F47F45D-335D-4AE0-9EF2-E0997C62E24C} = {0D5D758A-D83B-4941-8542-113A559367B7}
 		{96555763-EAB6-4ED8-87AF-0B16E4D5992D} = {18FD23D1-4AB1-4057-B60E-AF481F9D7167}
 		{0734CF8A-83D7-479B-A846-1253290F2834} = {18FD23D1-4AB1-4057-B60E-AF481F9D7167}
 		{CF055DAD-C04A-4ED5-822B-6FF2C0B25202} = {18FD23D1-4AB1-4057-B60E-AF481F9D7167}
 		{D380E42B-686D-4099-91BD-213CA1D4E7F1} = {E25616D8-52F1-44AF-B4E8-182AB6C34A55}
 		{CCEC6400-2CCA-46B0-B4DB-5B893B5377B0} = {E25616D8-52F1-44AF-B4E8-182AB6C34A55}
+		{DF4A64F7-011F-4241-B429-8D746EA4DC60} = {0D5D758A-D83B-4941-8542-113A559367B7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {15AF8C0F-C3F1-4EB6-9E34-A3DC1272A98D}

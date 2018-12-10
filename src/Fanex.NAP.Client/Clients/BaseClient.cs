@@ -67,6 +67,11 @@
 
         protected Uri CreateRequestUri(string relativePath, string queryString)
         {
+            if (string.IsNullOrEmpty(queryString))
+            {
+                return new Uri($"{relativePath}", UriKind.Relative);
+            }
+
             return new Uri($"{relativePath}?{queryString}", UriKind.Relative);
         }
     }
