@@ -1,4 +1,8 @@
-﻿namespace Fanex.NAP.Client
+﻿using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("Fanex.NAP.Client.Tests")]
+
+namespace Fanex.NAP.Client
 {
     using System;
     using Fanex.NAP.Client.Configuration;
