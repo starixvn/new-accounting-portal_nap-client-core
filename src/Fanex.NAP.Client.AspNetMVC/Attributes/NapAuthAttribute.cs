@@ -3,7 +3,7 @@
     using Fanex.NAP.Client.AspNetMVC.Auth;
     using Fanex.NAP.Client.Configuration;
     using Fanex.NAP.Client.Services;
-    using Fanex.NAP.Clients.Resources;
+    using Fanex.NAP.Client.Resources;
     using Fanex.NAP.Core.Business;
     using Fanex.NAP.Core.Configuration;
     using System;

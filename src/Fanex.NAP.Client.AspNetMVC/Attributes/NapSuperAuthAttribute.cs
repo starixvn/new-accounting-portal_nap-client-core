@@ -1,6 +1,6 @@
 ﻿namespace Fanex.NAP.Core.Web.Attribute
 {
-    using Fanex.NAP.Clients.Resources;
+    using Fanex.NAP.Client.Resources;
     using Fanex.NAP.Core.Web.Session;
     using System;
     using System.Web.Mvc;

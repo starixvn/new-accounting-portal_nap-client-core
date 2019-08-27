@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Fanex.NAP.Clients.Resources {
+namespace Fanex.NAP.Client.Resources {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Fanex.NAP.Clients.Resources {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Fanex.NAP.Core.Web.ViewResources", typeof(ViewResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Fanex.NAP.Client.Resources.ViewResources", typeof(ViewResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

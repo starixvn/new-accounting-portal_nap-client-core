@@ -5,7 +5,7 @@
     using System.Threading.Tasks;
     using Fanex.NAP.Client.Configuration;
     using Fanex.NAP.Client.Helpers.Exceptions;
-    using Fanex.NAP.Clients.Resources;
+    using Fanex.NAP.Client.Resources;
     using RestSharp;
 
     public class RestClient : Web.IRestClient
@@ -22,7 +22,11 @@
                {
                    BaseUrl = new Uri(configuration.ServiceUrls),
                    Authenticator = new HmacAuthenticator(),
-                   Timeout = 10000
+                   Timeout = 10000,
+                   Proxy = new WebProxy
+                   {
+                       BypassProxyOnLocal = true
+                   }
                };
 
         public Task<T> ExecuteGetAsync<T>(string endPoint, object data = null)
