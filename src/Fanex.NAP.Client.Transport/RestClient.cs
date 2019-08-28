@@ -18,16 +18,28 @@
         }
 
         public static IRestClient CreateDefaultClient(INapSettings configuration)
-               => new RestSharp.RestClient
-               {
-                   BaseUrl = new Uri(configuration.ServiceUrls),
-                   Authenticator = new HmacAuthenticator(),
-                   Timeout = 10000,
-                   Proxy = new WebProxy
-                   {
-                       BypassProxyOnLocal = true
-                   }
-               };
+        {
+            if (configuration.ByPassProxyLocal)
+            {
+                return new RestSharp.RestClient
+                {
+                    BaseUrl = new Uri(configuration.ServiceUrls),
+                    Authenticator = new HmacAuthenticator(),
+                    Timeout = 10000,
+                    Proxy = new WebProxy
+                    {
+                        BypassProxyOnLocal = true
+                    }
+                };
+            }
+
+            return new RestSharp.RestClient
+            {
+                BaseUrl = new Uri(configuration.ServiceUrls),
+                Authenticator = new HmacAuthenticator(),
+                Timeout = 10000
+            };
+        }
 
         public Task<T> ExecuteGetAsync<T>(string endPoint, object data = null)
              => ExecuteAsync<T>(endPoint, Method.GET, data);

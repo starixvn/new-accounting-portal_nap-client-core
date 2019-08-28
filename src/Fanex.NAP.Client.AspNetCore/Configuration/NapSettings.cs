@@ -24,6 +24,7 @@
             CacheDuration = GetValue<int>("Fanex.NAP.Client:CacheDuration");
             HubUrl = GetValue<string>("Fanex.NAP.Client:HubUrl");
             IsNapHub = SiteId == 0;
+            ByPassProxyLocal = GetValue<bool>("Fanex.NAP.Client:BypassProxyLocal");
         }
 
         public bool IsNapHub { get; }
@@ -45,6 +46,8 @@
         public string AccessKey { get; }
 
         public int CacheDuration { get; }
+
+        public bool ByPassProxyLocal { get; }
 
         private T GetValue<T>(string key)
         {
