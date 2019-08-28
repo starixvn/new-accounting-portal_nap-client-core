@@ -2,6 +2,7 @@
 {
     using System;
 
+    [Serializable]
     public class LoginParameter
     {
         public int UserId { get; set; }

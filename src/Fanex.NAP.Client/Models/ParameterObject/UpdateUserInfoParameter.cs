@@ -1,5 +1,8 @@
 ﻿namespace Fanex.NAP.Client.Models.ParameterObject
 {
+    using System;
+
+    [Serializable]
     public class UpdateUserInfoParameter
     {
         public int CustId { get; set; }

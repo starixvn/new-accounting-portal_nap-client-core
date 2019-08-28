@@ -22,6 +22,6 @@
 
         int CacheDuration { get; }
 
-        bool ByPassProxyLocal { get; }
+        bool? ByPassProxyLocal { get; }
     }
 }
