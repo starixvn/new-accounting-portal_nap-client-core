@@ -27,7 +27,7 @@
                 return;
             }
 
-            if (napSession.UserId <= 0 || string.IsNullOrEmpty(napSession.UserName))
+            if (napSession == null || napSession.UserId <= 0 || string.IsNullOrEmpty(napSession.UserName))
             {
                 RequestHelper.CloseConnection(context);
             }
