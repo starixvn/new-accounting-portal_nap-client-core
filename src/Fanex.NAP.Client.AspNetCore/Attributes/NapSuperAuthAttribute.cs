@@ -30,8 +30,6 @@
             if (napSession.UserId <= 0 || string.IsNullOrEmpty(napSession.UserName))
             {
                 RequestHelper.CloseConnection(context);
-
-                throw new InvalidOperationException("Missing UserId or UserName session");
             }
         }
     }

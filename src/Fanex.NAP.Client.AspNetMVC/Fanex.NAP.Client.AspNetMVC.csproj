@@ -6,7 +6,7 @@
     <PackageReleaseNotes>
       - Fix missing Resources
       - Add ByPassProxyLocal to configuration for avoiding slow connection in local network
-    </PackageReleaseNotes>
+      - Upgrade latest package</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 

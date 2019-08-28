@@ -16,6 +16,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\demos\Fanex.NAP.Client.Demo.AspNetCore\Fanex.NAP.Client.Demo.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\demos\Fanex.NAP.Client.Demo.AspNetCore\Fanex.NAP.Client.Demo.Site.Core.csproj" />
   </ItemGroup>
 </Project>
