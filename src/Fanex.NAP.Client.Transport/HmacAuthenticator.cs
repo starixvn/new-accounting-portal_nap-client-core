@@ -7,6 +7,7 @@
     using System.Security.Cryptography;
     using System.Text;
     using System.Web;
+    using Binaron.Serializer;
     using Fanex.NAP.Client.Configuration;
     using RestSharp;
     using RestSharp.Authenticators;
@@ -83,12 +84,9 @@
 
         private static byte[] ObjectToByteArray(object obj)
         {
-            var formatter = new BinaryFormatter();
-
             using (var ms = new MemoryStream())
             {
-                formatter.Serialize(ms, obj);
-
+                BinaronConvert.Serialize(obj, ms);
                 return ms.ToArray();
             }
         }

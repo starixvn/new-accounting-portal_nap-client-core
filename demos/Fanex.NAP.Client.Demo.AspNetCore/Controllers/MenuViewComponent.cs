@@ -1,9 +1,11 @@
 ﻿namespace Fanex.Nap.Client.AspNetCore.DemoSite.Controllers
 {
-    using System.Linq;
     using Fanex.Nap.Client.AspNetCore.DemoSite.Models;
     using Fanex.NAP.Client.Helpers.Web;
+    using Fanex.NAP.Client.Models;
     using Microsoft.AspNetCore.Mvc;
+    using System.Collections.Generic;
+    using System.Linq;
 
     public class MenuViewComponent : ViewComponent
     {
@@ -16,12 +18,12 @@
 
         public IViewComponentResult Invoke()
         {
-            var menuItems = napSession.MenuItemList?.OrderBy(item => item.DisplayOrder);
+            var menuItems = napSession.MenuItemList?.OrderBy(item => item.DisplayOrder).ToList();
             var userName = napSession.UserName;
 
             return View(new MenuViewModel
             {
-                MemuItems = menuItems,
+                MemuItems = menuItems ?? new List<MenuItem>(),
                 UserName = userName
             });
         }

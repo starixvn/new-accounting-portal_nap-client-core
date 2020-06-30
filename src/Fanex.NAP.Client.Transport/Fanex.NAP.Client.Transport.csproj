@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <Version>1.0.0-beta4</Version>
     <PackageReleaseNotes>- Add ByPassProxyLocal to configuration for avoiding slow connection in local network
 - Upgrade latest package</PackageReleaseNotes>
@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Binaron.Serializer" Version="2.4.0" />
     <PackageReference Include="RestSharp" Version="106.6.10" />
   </ItemGroup>
 
