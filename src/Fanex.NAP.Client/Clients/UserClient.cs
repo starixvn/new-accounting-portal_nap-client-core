@@ -1,11 +1,10 @@
 ﻿namespace Fanex.NAP.Client.Clients
 {
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
     using Fanex.NAP.Client.Models;
     using Fanex.NAP.Client.Models.ValueObject;
-    using Fanex.NAP.Client.Web;
     using Fanex.NAP.Core.Business;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     internal interface IUserClient
     {
@@ -31,55 +30,56 @@
 
     internal class UserClient : BaseClient, IUserClient
     {
-        public UserClient() : base(null)
-        {
-        }
 
         public async Task<bool> HasAnyPermission(int userId, int siteId, string environment = Constant.UAT)
-            => await Get<bool>(
-                    CreateRequestUri(string.Format(RelativePaths.HasAnyPermission, userId),
-                    new { siteId, environment }))
-                .ConfigureAwait(false);
+        {
+            return await Get<bool>(CreateRequestUri(string.Format(RelativePaths.HasAnyPermission, userId), new { siteId, environment }));
+        }
 
         public async Task<IEnumerable<MenuItem>> GetMenuItem(int userId, int siteId, string env = Constant.UAT, bool? isActive = null)
-            => await Get<IEnumerable<MenuItem>>(
-                    CreateRequestUri(string.Format(RelativePaths.GetMenuItem, userId),
-                    new { siteId, environment = env, isActive }))
-                .ConfigureAwait(false);
+        {
+            return await Get<IEnumerable<MenuItem>>(CreateRequestUri(
+                string.Format(RelativePaths.GetMenuItem, userId),
+                new { siteId, environment = env, isActive }));
+        }
 
         public async Task<IEnumerable<SiteLevel>> GetSiteLevel(int userId, string env = Constant.UAT)
-            => await Get<IEnumerable<SiteLevel>>(
-                    CreateRequestUri(string.Format(RelativePaths.GetSiteLevel, userId),
-                    new { environment = env }))
-                .ConfigureAwait(false);
+        {
+            return await Get<IEnumerable<SiteLevel>>(CreateRequestUri(string.Format(RelativePaths.GetSiteLevel, userId), new { environment = env }));
+        }
 
         public async Task<User> Get(int userId)
-            => await Get<User>(CreateRequestUri(string.Format(RelativePaths.GetById, userId))).ConfigureAwait(false);
+        {
+            return await Get<User>(CreateRequestUri(string.Format(RelativePaths.GetById, userId)));
+        }
 
         public async Task<User> Get(string username)
-            => await Get<User>(CreateRequestUri(RelativePaths.GetByUsername, new { username })).ConfigureAwait(false);
+        {
+            return await Get<User>(CreateRequestUri(RelativePaths.GetByUsername, new { username }));
+        }
 
         public async Task<IEnumerable<User>> GetAll()
-            => await Get<IEnumerable<User>>(CreateRequestUri(RelativePaths.GetAll)).ConfigureAwait(false);
+        {
+            return await Get<IEnumerable<User>>(CreateRequestUri(RelativePaths.GetAll));
+        }
 
         public async Task<int> GetUserLevel(int userId, int siteId)
-            => await Get<int>(CreateRequestUri(string.Format(RelativePaths.GetUserLevel, userId, siteId)))
-            .ConfigureAwait(false);
+        {
+            return await Get<int>(CreateRequestUri(string.Format(RelativePaths.GetUserLevel, userId, siteId)));
+        }
 
         public async Task<int> GetPermission(int userId, int siteId, string functionKey)
-            => await Get<int>(CreateRequestUri(string.Format(RelativePaths.GetPermission, userId), new { siteId, functionKey }))
-            .ConfigureAwait(false);
+        {
+            return await Get<int>(CreateRequestUri(string.Format(RelativePaths.GetPermission, userId), new { siteId, functionKey }));
+        }
 
         public async Task<IEnumerable<FunctionPolicy>> GetPermissions(int userId, int siteId, string parentFunctionKey, string environment = Constant.UAT)
             => await Get<IEnumerable<FunctionPolicy>>(
                 CreateRequestUri(string.Format(RelativePaths.GetPermissions, userId),
-                new { siteId, parentFunctionKey, environment }))
-            .ConfigureAwait(false);
+                new { siteId, parentFunctionKey, environment }));
 
         public async Task<IEnumerable<UserPolicy>> GetUserPolicies(string functionKey, int siteId)
-            => await Get<IEnumerable<UserPolicy>>(
-                CreateRequestUri(RelativePaths.GetUserPolicies, new { functionKey, siteId }))
-            .ConfigureAwait(false);
+            => await Get<IEnumerable<UserPolicy>>(CreateRequestUri(RelativePaths.GetUserPolicies, new { functionKey, siteId }));
 
         private static class RelativePaths
         {

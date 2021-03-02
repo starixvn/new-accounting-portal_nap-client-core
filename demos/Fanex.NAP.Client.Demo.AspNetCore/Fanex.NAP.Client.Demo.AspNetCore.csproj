@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Fanex.NAP.Client.AspNetCore\Fanex.NAP.Client.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\src\Fanex.NAP.Client.Transport\Fanex.NAP.Client.Transport.csproj" />
   </ItemGroup>
 
 </Project>

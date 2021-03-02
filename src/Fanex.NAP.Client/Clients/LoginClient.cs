@@ -1,7 +1,8 @@
 ﻿namespace Fanex.NAP.Client.Clients
 {
-    using System.Threading.Tasks;
     using Fanex.NAP.Client.Models.ParameterObject;
+    using System.Net.Http;
+    using System.Threading.Tasks;
 
     internal interface ILoginClient
     {
@@ -10,14 +11,12 @@
 
     internal class LoginClient : BaseClient, ILoginClient
     {
-        public LoginClient() : base(null)
+        public async Task<int> Login(LoginParameter parameter)
         {
+            return await Send<LoginParameter, int>(CreateRequestUri(RelativePaths.Login), HttpMethod.Post, parameter);
         }
 
-        public async Task<int> Login(LoginParameter parameter)
-            => await Post<LoginParameter, int>(CreateRequestUri(RelativePaths.Login), parameter).ConfigureAwait(false);
-
-        private static class RelativePaths
+        private class RelativePaths
         {
             public const string Login = "/login/";
         }

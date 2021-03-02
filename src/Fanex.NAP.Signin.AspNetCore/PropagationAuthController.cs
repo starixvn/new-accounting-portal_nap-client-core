@@ -81,7 +81,7 @@ namespace Fanex.NAP.Signin.AspNetCore
 
         #region sign out
 
-        [Authorize]
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult> LogOut(string redirectUrl)
         {

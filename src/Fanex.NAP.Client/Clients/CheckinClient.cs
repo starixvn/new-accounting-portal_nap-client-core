@@ -9,16 +9,12 @@
 
     internal class CheckinClient : BaseClient, ICheckinClient
     {
-        public CheckinClient() : base(null)
+        public async Task<int> ReCheckIn(int onlineUserId, int siteId)
         {
+            return await Get<int>(CreateRequestUri(RelativePaths.ReCheckIn, new { onUserId = onlineUserId, siteId = siteId }));
         }
 
-        public async Task<int> ReCheckIn(int onlineUserId, int siteId)
-            => await Get<int>(
-                CreateRequestUri(RelativePaths.ReCheckIn, new { onUserId = onlineUserId, siteId }))
-            .ConfigureAwait(false);
-
-        private static class RelativePaths
+        private class RelativePaths
         {
             public const string ReCheckIn = "/recheckin/";
         }

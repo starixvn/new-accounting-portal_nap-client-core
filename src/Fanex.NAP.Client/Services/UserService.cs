@@ -1,11 +1,11 @@
 ﻿namespace Fanex.NAP.Client.Services
 {
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
     using Clients;
     using Fanex.NAP.Core.Business;
     using Models;
     using Models.ValueObject;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     public interface IUserService
     {
@@ -48,17 +48,6 @@
 
     public class UserService : IUserService
     {
-        private readonly IUserClient userClient;
-
-        public UserService() : this(null)
-        {
-        }
-
-        internal UserService(IUserClient userClient)
-        {
-            this.userClient = userClient ?? new UserClient();
-        }
-
         public bool HasAnyPermission(int userId, int siteId, string environment = Constant.UAT)
             => HasAnyPermissionAsync(userId, siteId, environment).Result;
 
@@ -67,7 +56,7 @@
             Check.Argument.IsNotNegativeOrZero(userId, "userId");
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
             Check.Argument.IsNotEmpty(environment, "environment");
-
+            var userClient = new UserClient();
             return await userClient.HasAnyPermission(userId, siteId, environment).ConfigureAwait(false);
         }
 
@@ -79,7 +68,7 @@
             Check.Argument.IsNotNegativeOrZero(userId, "userId");
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
             Check.Argument.IsNotEmpty(environment, "environment");
-
+            var userClient = new UserClient();
             return await userClient.GetMenuItem(userId, siteId, environment, isActive).ConfigureAwait(false);
         }
 
@@ -90,7 +79,7 @@
         {
             Check.Argument.IsNotNegativeOrZero(userId, "userId");
             Check.Argument.IsNotEmpty(environment, "environment");
-
+            var userClient = new UserClient();
             return await userClient.GetSiteLevel(userId, environment).ConfigureAwait(false);
         }
 
@@ -99,7 +88,7 @@
         public async Task<User> GetAsync(int userId)
         {
             Check.Argument.IsNotNegativeOrZero(userId, "userId");
-
+            var userClient = new UserClient();
             return await userClient.Get(userId).ConfigureAwait(false);
         }
 
@@ -108,13 +97,17 @@
         public async Task<User> GetAsync(string username)
         {
             Check.Argument.IsNotEmpty(username, "username");
-
+            var userClient = new UserClient();
             return await userClient.Get(username).ConfigureAwait(false);
         }
 
         public IEnumerable<User> GetAll() => GetAllAsync().Result;
 
-        public async Task<IEnumerable<User>> GetAllAsync() => await userClient.GetAll().ConfigureAwait(false);
+        public async Task<IEnumerable<User>> GetAllAsync()
+        {
+            var userClient = new UserClient();
+            return await userClient.GetAll().ConfigureAwait(false);
+        }
 
         public int GetUserLevel(int userId, int siteId) => GetUserLevelAsync(userId, siteId).Result;
 
@@ -122,7 +115,7 @@
         {
             Check.Argument.IsNotNegativeOrZero(userId, "userId");
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-
+            var userClient = new UserClient();
             return await userClient.GetUserLevel(userId, siteId).ConfigureAwait(false);
         }
 
@@ -133,7 +126,7 @@
             Check.Argument.IsNotNegativeOrZero(userId, "userId");
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
             Check.Argument.IsNotEmpty(functionKey, "functionKey");
-
+            var userClient = new UserClient();
             return await userClient.GetPermission(userId, siteId, functionKey).ConfigureAwait(false);
         }
 
@@ -155,7 +148,7 @@
         {
             Check.Argument.IsNotNegativeOrZero(userId, "userId");
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-
+            var userClient = new UserClient();
             return await userClient.GetPermissions(userId, siteId, parentFunctionKey, environment).ConfigureAwait(false);
         }
 
@@ -166,7 +159,7 @@
         {
             Check.Argument.IsNotEmpty(functionKey, "functionKey");
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-
+            var userClient = new UserClient();
             return await userClient.GetUserPolicies(functionKey, siteId).ConfigureAwait(false);
         }
     }

@@ -3,8 +3,6 @@ using Fanex.NAP.Client.AspNetCore.Session;
 using Fanex.NAP.Client.Configuration;
 using Fanex.NAP.Client.Helpers.Web;
 using Fanex.NAP.Client.Services;
-using Fanex.NAP.Client.Transport;
-using Fanex.NAP.Client.Web;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -52,7 +50,6 @@ namespace Fanex.NAP.Client.Demo.AspNetCore
             services.AddSingleton<INapSettings>(new NapSettings(Configuration));
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<INapSession, NapSession>();
-            services.AddSingleton<IRestClient, RestClient>();
             services.AddSingleton<IUserService, UserService>();
             services.AddSingleton<ISecurityService, SecurityService>();
         }
@@ -62,7 +59,6 @@ namespace Fanex.NAP.Client.Demo.AspNetCore
         {
             NapClientManager
                .UseConfig(app.ApplicationServices.GetService<INapSettings>())
-               .UseRestClient(app.ApplicationServices.GetService<IRestClient>())
                .UseSession(app.ApplicationServices.GetService<INapSession>());
 
             if (env.IsDevelopment())

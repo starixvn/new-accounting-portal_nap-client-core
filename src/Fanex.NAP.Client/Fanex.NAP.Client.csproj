@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;</TargetFrameworks>
     <Version>2.0.0-beta04</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Fanex.NAP.Core.Client</PackageId>
@@ -10,4 +10,9 @@
     <PackageReleaseNotes>- Fix missing Resources
 - Add ByPassProxyLocal to configuration for avoiding slow connection in local network</PackageReleaseNotes>
   </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\..\Documents\Nuget-Packages\newtonsoft.json\11.0.2\lib\netstandard2.0\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

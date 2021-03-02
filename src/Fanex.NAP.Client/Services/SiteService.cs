@@ -1,10 +1,10 @@
 ﻿namespace Fanex.NAP.Client.Services
 {
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
     using Fanex.NAP.Client.Clients;
     using Fanex.NAP.Client.Models.ValueObject;
     using Models;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     public interface ISiteService
     {
@@ -23,23 +23,12 @@
 
     public class SiteService : ISiteService
     {
-        private readonly ISiteClient siteClient;
-
-        public SiteService() : this(null)
-        {
-        }
-
-        internal SiteService(ISiteClient siteClient)
-        {
-            this.siteClient = siteClient ?? new SiteClient();
-        }
-
         public bool IsActivated(int siteId) => IsActivatedAsync(siteId).Result;
 
         public async Task<bool> IsActivatedAsync(int siteId)
         {
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-
+            var siteClient = new SiteClient();
             return await siteClient.IsActivated(siteId).ConfigureAwait(false);
         }
 
@@ -49,7 +38,7 @@
         {
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
             Check.Argument.IsNotEmpty(environment, "environment");
-
+            var siteClient = new SiteClient();
             return await siteClient.GetUrlById(siteId, environment).ConfigureAwait(false);
         }
 
@@ -60,7 +49,7 @@
         {
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
             Check.Argument.IsNotEmpty(enviroment, "enviroment");
-
+            var siteClient = new SiteClient();
             return await siteClient.GetMenuItemBySiteId(siteId, enviroment, isActive).ConfigureAwait(false);
         }
     }

@@ -1,9 +1,9 @@
 ﻿namespace Fanex.NAP.Client.Services
 {
-    using System.Threading.Tasks;
     using Fanex.NAP.Client;
     using Fanex.NAP.Client.Clients;
     using Fanex.NAP.Client.Models;
+    using System.Threading.Tasks;
 
     public interface IGroupService
     {
@@ -14,22 +14,12 @@
 
     public class GroupService : IGroupService
     {
-        private readonly IGroupClient groupClient;
-
-        public GroupService() : this(null)
-        {
-        }
-
-        public GroupService(IGroupClient groupClient)
-        {
-            this.groupClient = groupClient ?? new GroupClient();
-        }
-
         public Group Get(int groupId) => GetAsync(groupId).Result;
 
         public async Task<Group> GetAsync(int groupId)
         {
             Check.Argument.IsNotNegativeOrZero(groupId, "groupId");
+            var groupClient = new GroupClient();
 
             return await groupClient.Get(groupId);
         }

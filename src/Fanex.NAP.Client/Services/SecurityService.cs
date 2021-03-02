@@ -1,9 +1,8 @@
 ﻿namespace Fanex.NAP.Client.Services
 {
-    using System.Threading.Tasks;
     using Fanex.NAP.Client.Clients;
-    using Fanex.NAP.Client.Helpers.Web;
     using Fanex.NAP.Client.Models.ParameterObject;
+    using System.Threading.Tasks;
 
     public interface ISecurityService
     {
@@ -38,36 +37,12 @@
 
     public class SecurityService : ISecurityService
     {
-        private readonly ILoginClient loginClient;
-        private readonly ILogoutClient logoutClient;
-        private readonly ICheckinClient checkinClient;
-        private readonly ISSOClient ssoClient;
-        private readonly IUserInfoClient userInfoClient;
-
-        public SecurityService() : this(null, null, null, null, null)
-        {
-        }
-
-        internal SecurityService(
-            ILoginClient loginClient,
-            ILogoutClient logoutClient,
-            ICheckinClient checkinClient,
-            ISSOClient ssoClient,
-            IUserInfoClient userInfoClient)
-        {
-            this.loginClient = loginClient ?? new LoginClient();
-            this.logoutClient = logoutClient ?? new LogoutClient();
-            this.checkinClient = checkinClient ?? new CheckinClient();
-            this.ssoClient = ssoClient ?? new SSOClient();
-            this.userInfoClient = userInfoClient ?? new UserInfoClient();
-        }
-
         public int Login(LoginParameter parameter) => LoginAsync(parameter).Result;
 
         public async Task<int> LoginAsync(LoginParameter parameter)
         {
             Check.Argument.IsNotNull(parameter, "parameter");
-
+            var loginClient = new LoginClient();
             return await loginClient.Login(parameter).ConfigureAwait(false);
         }
 
@@ -76,7 +51,7 @@
         public async Task LogoutAsync(int onlineUserId)
         {
             Check.Argument.IsNotNegativeOrZero(onlineUserId, "onlineUserId");
-
+            var logoutClient = new LogoutClient();
             await logoutClient.Logout(onlineUserId).ConfigureAwait(false);
         }
 
@@ -86,20 +61,24 @@
         {
             Check.Argument.IsNotNegativeOrZero(onlineUserId, "onlineUserId");
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-
+            var checkinClient = new CheckinClient();
             return await checkinClient.ReCheckIn(onlineUserId, siteId).ConfigureAwait(false);
         }
 
         public string GetTime() => GetTimeAsync().Result;
 
-        public async Task<string> GetTimeAsync() => await ssoClient.GetTime().ConfigureAwait(false);
+        public async Task<string> GetTimeAsync()
+        {
+            var ssoClient = new SSOClient();
+            return await ssoClient.GetTime().ConfigureAwait(false);
+        }
 
         public int SSOLogin(SSOLoginParameter parameter) => SSOLoginAsync(parameter).Result;
 
         public async Task<int> SSOLoginAsync(SSOLoginParameter parameter)
         {
             Check.Argument.IsNotNull(parameter, "parameter");
-
+            var ssoClient = new SSOClient();
             return await ssoClient.Login(parameter).ConfigureAwait(false);
         }
 
@@ -111,7 +90,7 @@
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
             Check.Argument.IsNotNegativeOrZero(userId, "parameter");
             Check.Argument.IsNotEmpty(password, "password");
-
+            var userInfoClient = new UserInfoClient();
             return await userInfoClient.UpdatePassword(siteId, userId, password).ConfigureAwait(false);
         }
 
@@ -122,7 +101,7 @@
         {
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
             Check.Argument.IsNotNull(parameter, "parameter");
-
+            var userInfoClient = new UserInfoClient();
             return await userInfoClient.UpdateProfile(siteId, parameter).ConfigureAwait(false);
         }
     }
