@@ -9,8 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0D5D758A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demos", "demos", "{E25616D8-52F1-44AF-B4E8-182AB6C34A55}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client", "src\Fanex.NAP.Client\Fanex.NAP.Client.csproj", "{BBBEBE10-B8D5-4945-9A14-AFA514ACD492}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client.AspNetCore", "src\Fanex.NAP.Client.AspNetCore\Fanex.NAP.Client.AspNetCore.csproj", "{CF055DAD-C04A-4ED5-822B-6FF2C0B25202}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client.Integration.Tests", "tests\Fanex.Nap.Client.Integration.Tests\Fanex.NAP.Client.Integration.Tests.csproj", "{DF4A64F7-011F-4241-B429-8D746EA4DC60}"
@@ -25,10 +23,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BBBEBE10-B8D5-4945-9A14-AFA514ACD492}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BBBEBE10-B8D5-4945-9A14-AFA514ACD492}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BBBEBE10-B8D5-4945-9A14-AFA514ACD492}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BBBEBE10-B8D5-4945-9A14-AFA514ACD492}.Release|Any CPU.Build.0 = Release|Any CPU
 		{CF055DAD-C04A-4ED5-822B-6FF2C0B25202}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{CF055DAD-C04A-4ED5-822B-6FF2C0B25202}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF055DAD-C04A-4ED5-822B-6FF2C0B25202}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -50,7 +44,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{BBBEBE10-B8D5-4945-9A14-AFA514ACD492} = {18FD23D1-4AB1-4057-B60E-AF481F9D7167}
 		{CF055DAD-C04A-4ED5-822B-6FF2C0B25202} = {18FD23D1-4AB1-4057-B60E-AF481F9D7167}
 		{DF4A64F7-011F-4241-B429-8D746EA4DC60} = {0D5D758A-D83B-4941-8542-113A559367B7}
 		{92486801-9CC2-4550-9293-1955C2546A81} = {18FD23D1-4AB1-4057-B60E-AF481F9D7167}
