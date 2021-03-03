@@ -226,7 +226,7 @@
         private static NameValueCollection ParseQueryString(string queryString)
         {
             var queryParameters = new NameValueCollection();
-            string[] querySegments = queryString.Split('&', StringSplitOptions.RemoveEmptyEntries);
+            string[] querySegments = queryString.Split(new[] { '&' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string segment in querySegments)
             {
                 string[] parts = segment.Split('=');

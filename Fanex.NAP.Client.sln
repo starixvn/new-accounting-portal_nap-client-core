@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Signin.AspNetCore
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client.Demo.AspNetCore", "demos\Fanex.NAP.Client.Demo.AspNetCore\Fanex.NAP.Client.Demo.AspNetCore.csproj", "{51A2B449-0810-4296-A177-897497FBCF66}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client.AspNetCore20", "src\Fanex.NAP.Client.AspNetCore20\Fanex.NAP.Client.AspNetCore20.csproj", "{146CD1B5-577D-4EDC-9B8E-7E1C4CAEE9E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{51A2B449-0810-4296-A177-897497FBCF66}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51A2B449-0810-4296-A177-897497FBCF66}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51A2B449-0810-4296-A177-897497FBCF66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{146CD1B5-577D-4EDC-9B8E-7E1C4CAEE9E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{146CD1B5-577D-4EDC-9B8E-7E1C4CAEE9E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{146CD1B5-577D-4EDC-9B8E-7E1C4CAEE9E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{146CD1B5-577D-4EDC-9B8E-7E1C4CAEE9E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -48,6 +54,7 @@ Global
 		{DF4A64F7-011F-4241-B429-8D746EA4DC60} = {0D5D758A-D83B-4941-8542-113A559367B7}
 		{92486801-9CC2-4550-9293-1955C2546A81} = {18FD23D1-4AB1-4057-B60E-AF481F9D7167}
 		{51A2B449-0810-4296-A177-897497FBCF66} = {E25616D8-52F1-44AF-B4E8-182AB6C34A55}
+		{146CD1B5-577D-4EDC-9B8E-7E1C4CAEE9E9} = {18FD23D1-4AB1-4057-B60E-AF481F9D7167}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {15AF8C0F-C3F1-4EB6-9E34-A3DC1272A98D}
