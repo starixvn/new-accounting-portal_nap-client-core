@@ -1,12 +1,11 @@
 ﻿namespace Fanex.NAP.Client.AspNetCore.Attributes
 {
-    using System;
-    using System.Net;
     using Fanex.NAP.Client.Resources;
     using Microsoft.AspNetCore.Authentication;
-    using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc.Filters;
+    using System;
+    using System.Net;
 
     internal static class RequestHelper
     {
@@ -21,7 +20,7 @@
             }
             else
             {
-                context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                context.HttpContext.SignOutAsync("Cookies");
             }
         }
 
