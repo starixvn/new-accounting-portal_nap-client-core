@@ -1,18 +1,13 @@
 ﻿using Fanex.NAP.Client.Configuration;
 using Fanex.NAP.Client.Helpers.Web;
 using Fanex.NAP.Client.Models;
-using Fanex.NAP.Client.Models.ParameterObject;
-using Fanex.NAP.Client.Models.ValueObject;
-using Fanex.NAP.Client.Resources;
 using Fanex.NAP.Client.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
@@ -56,22 +51,19 @@ namespace Fanex.NAP.Signin.AspNetCore
                 return Content("Invalid input!");
             }
 
-            var user = userService.Get(username.Trim());
+            var user = await userService.GetAsync(username.Trim());
             if (user == null)
             {
-                return Content(ViewResources.Invalid_Username_or_Password);
+                return Content("Invalid Username or Password");
             }
 
             string hashPassword = SHA256(user.Password + loginToken);
             if (password != hashPassword)
             {
-                return Content(ViewResources.Invalid_Username_or_Password);
+                return Content("Invalid Username or Password");
             }
 
-            var criteria = SetUserCheckInCriteria(user.Id);
-            var onUserId = securityService.Login(criteria);
-
-            await SaveUserSession(user, username, onUserId);
+            await SaveUserSession(user, username, int.MaxValue - 1);
 
             redirectUrl = WebUtility.UrlDecode(redirectUrl);
             return Redirect(redirectUrl);
@@ -128,53 +120,6 @@ namespace Fanex.NAP.Signin.AspNetCore
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
         }
 
-        private LoginParameter SetUserCheckInCriteria(int userId)
-        {
-            return new LoginParameter
-            {
-                UserId = userId,
-                SiteId = napSettings.SiteId,
-                LoginDate = DateTime.Now,
-                NetSessionId = HttpContext?.Session.Id,
-                Ip = GetClientIP(),
-                BrowserName = Request?.Headers["User-Agent"].ToString(),
-                CountryCode = ResolveCountry(HttpContext.Request)?.GeoId.ToString(CultureInfo.CurrentCulture),
-                Domain = HttpContext.Request?.Host.ToString(),
-                Platform = Environment.OSVersion.Platform.ToString()
-            };
-        }
-
-        private string GetClientIP()
-        {
-            var clientIP = HttpContext.Request?.Headers["x-forwarded-for"].ToString();
-            if (string.IsNullOrWhiteSpace(clientIP))
-            {
-                clientIP = HttpContext?.Connection?.RemoteIpAddress?.ToString();
-            }
-
-            return clientIP;
-        }
-
-        private static RegionInfo ResolveCountry(HttpRequest request)
-        {
-            var culture = ResolveCulture(request);
-
-            if (culture != null)
-            {
-                return new RegionInfo(culture.LCID);
-            }
-
-            return null;
-        }
-
-        private static CultureInfo ResolveCulture(HttpRequest request)
-        {
-            var userLangs = request.Headers["Accept-Language"].ToString();
-            var firstLang = userLangs.Split(',').FirstOrDefault();
-            var defaultLang = string.IsNullOrEmpty(firstLang) ? "en" : firstLang;
-            return CultureInfo.CreateSpecificCulture(defaultLang);
-        }
-
         private async Task SaveUserSession(User user, string userName, int onUserId)
         {
             napSession.UserId = user.Id;
@@ -183,21 +128,6 @@ namespace Fanex.NAP.Signin.AspNetCore
 
             CreateUserMenu(user);
             await CreateAuthInfo(user);
-        }
-
-        private bool UserIsActiveOnThisSite(IEnumerable<SiteLevel> siteLevelList)
-        {
-            bool userIsActiveOnThisSite = false;
-
-            foreach (var siteLevel in siteLevelList)
-            {
-                if (siteLevel.Site.Id == napSettings.SiteId && siteLevel.IsActive)
-                {
-                    userIsActiveOnThisSite = true;
-                }
-            }
-
-            return userIsActiveOnThisSite;
         }
 
         private string SHA256(string input)
@@ -235,54 +165,27 @@ namespace Fanex.NAP.Signin.AspNetCore
 
         public async Task<bool> IsAuthenticated(string userId, string onuserId, string time)
         {
-            var currentTime = securityService.GetTime();
-            var userIdDecrypt = Fanex.Data.Cryptography.DecryptPassword(userId.Replace(" ", "+"));
-            var onuserIdDecrypt = Fanex.Data.Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
-            var timeDecrypt = Fanex.Data.Cryptography.DecryptPassword(time.Replace(" ", "+"));
+            var currentTime = await securityService.GetTimeAsync();
+            var userIdDecrypt = Data.Cryptography.DecryptPassword(userId.Replace(" ", "+"));
+            var onuserIdDecrypt = Data.Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
+            var timeDecrypt = Data.Cryptography.DecryptPassword(time.Replace(" ", "+"));
             var expiration = Convert.ToDateTime(currentTime) - Convert.ToDateTime(timeDecrypt);
 
             if (expiration.TotalSeconds <= TimeExipration)
             {
-                var criteria = SetSsoLoginParameter(userIdDecrypt, onuserIdDecrypt);
+                var user = await userService.GetAsync(Convert.ToInt32(userIdDecrypt));
+                napSession.UserId = user.Id;
+                napSession.UserName = user.Username;
+                napSession.OnUserId = Convert.ToInt32(onuserIdDecrypt);
+                napSession.MenuItemList = (await userService.GetMenuItemAsync(user.Id, napSettings.SiteId, napSettings.Environment, true)).ToList();
 
-                var onUserId = securityService.SSOLogin(criteria);
-                if (onUserId != 0)
-                {
-                    var user = userService.Get(criteria.UserId);
-                    napSession.UserId = user.Id;
-                    napSession.UserName = user.Username;
-                    napSession.OnUserId = onUserId;
+                await CreateAuthInfo(user);
 
-                    if (napSettings.SiteId != 0)
-                    {
-                        napSession.MenuItemList = userService.GetMenuItem(user.Id, napSettings.SiteId, napSettings.Environment, true).ToList();
-                    }
+                return true;
 
-                    await CreateAuthInfo(user);
-
-                    return true;
-                }
             }
 
             return false;
-        }
-
-        private SSOLoginParameter SetSsoLoginParameter(string userId, string onuserId)
-        {
-            return new SSOLoginParameter
-            {
-                UserId = Convert.ToInt32(userId),
-                SiteId = napSettings.SiteId,
-                CheckOnUserId = Convert.ToInt32(onuserId),
-                OnUserId = 0,
-                LoginDate = DateTime.Now,
-                NetSessionId = HttpContext?.Session.Id,
-                IP = GetClientIP(),
-                BrowserName = Request?.Headers["User-Agent"].ToString(),
-                CountryCode = ResolveCountry(HttpContext.Request)?.GeoId.ToString(CultureInfo.CurrentCulture),
-                Domain = HttpContext.Request?.Host.ToString(),
-                Platform = Environment.OSVersion.Platform.ToString()
-            };
         }
 
         #endregion

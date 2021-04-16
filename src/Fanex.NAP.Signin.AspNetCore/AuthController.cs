@@ -1,9 +1,9 @@
-﻿using Fanex.NAP.Client.Configuration;
+﻿using Fanex.Data;
+using Fanex.NAP.Client.Configuration;
 using Fanex.NAP.Client.Helpers.Web;
 using Fanex.NAP.Client.Models;
 using Fanex.NAP.Client.Models.ParameterObject;
 using Fanex.NAP.Client.Models.ValueObject;
-using Fanex.NAP.Client.Resources;
 using Fanex.NAP.Client.Services;
 using Fanex.NAP.Signin.AspNetCore.Models;
 using Fanex.NAP.Signin.AspNetCore.ViewModel;
@@ -77,21 +77,21 @@ namespace Fanex.NAP.Signin.AspNetCore
 
             if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
             {
-                var user = userService.Get(username.Trim());
+                var user = await userService.GetAsync(username.Trim());
                 if (user != null)
                 {
                     string hashPassword = SHA256(user.Password + loginToken);
                     if (password == hashPassword)
                     {
-                        var group = user.Group == null ? null : groupService.Get(user.Group.Id);
+                        var group = user.Group == null ? null : await groupService.GetAsync(user.Group.Id);
 
-                        var siteLevelList = userService.GetSiteLevel(user.Id, napSettings.Environment);
+                        var siteLevelList = await userService.GetSiteLevelAsync(user.Id, napSettings.Environment);
 
                         if ((group == null || group.IsActive) &&
                             siteLevelList.Any(x => x.IsActive))
                         {
                             var criteria = SetUserCheckInCriteria(user.Id);
-                            var onUserId = securityService.Login(criteria);
+                            var onUserId = await securityService.LoginAsync(criteria);
 
 
                             await SaveUserSession(user, username, onUserId);
@@ -104,11 +104,9 @@ namespace Fanex.NAP.Signin.AspNetCore
                                     redirectUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~/") : redirectUrl;
                                     return Redirect(redirectUrl);
                                 }
-                                else
-                                {
-                                    await DoSignOut();
-                                    indexViewModel.Message = ViewResources.Your_account_was_suspended;
-                                }
+
+                                await DoSignOut();
+                                indexViewModel.Message = "Your account was suspended";
                             }
                             else
                             {
@@ -118,17 +116,17 @@ namespace Fanex.NAP.Signin.AspNetCore
                         }
                         else
                         {
-                            indexViewModel.Message = siteLevelList.Any() ? ViewResources.Your_account_was_suspended : ViewResources.You_have_no_authorization;
+                            indexViewModel.Message = siteLevelList.Any() ? "Your_account_was_suspended" : "You have no authorization";
                         }
                     }
                     else
                     {
-                        indexViewModel.Message = ViewResources.Invalid_Username_or_Password;
+                        indexViewModel.Message = "Invalid Username or Password";
                     }
                 }
                 else
                 {
-                    indexViewModel.Message = ViewResources.Invalid_Username_or_Password;
+                    indexViewModel.Message = "Invalid Username or Password";
                 }
             }
             else
@@ -170,7 +168,7 @@ namespace Fanex.NAP.Signin.AspNetCore
 
             return Json(new
             {
-                OnUserId = napSession.OnUserId,
+                napSession.OnUserId,
                 IsKickedOut = isKickedOut
             });
         }
@@ -223,17 +221,17 @@ namespace Fanex.NAP.Signin.AspNetCore
                 Ip = GetClientIP(),
                 BrowserName = Request?.Headers["User-Agent"].ToString(),
                 CountryCode = ResolveCountry(HttpContext.Request)?.GeoId.ToString(CultureInfo.CurrentCulture),
-                Domain = HttpContext.Request?.Host.ToString(),
+                Domain = HttpContext.Request.Host.ToString(),
                 Platform = Environment.OSVersion.Platform.ToString()
             };
         }
 
         private string GetClientIP()
         {
-            var clientIP = HttpContext.Request?.Headers["x-forwarded-for"].ToString();
+            var clientIP = HttpContext.Request.Headers["x-forwarded-for"].ToString();
             if (string.IsNullOrWhiteSpace(clientIP))
             {
-                clientIP = HttpContext?.Connection?.RemoteIpAddress?.ToString();
+                clientIP = HttpContext?.Connection.RemoteIpAddress?.ToString();
             }
 
             return clientIP;
@@ -355,7 +353,7 @@ namespace Fanex.NAP.Signin.AspNetCore
                 return Content(string.Empty, "text/javascript");
             }
 
-            var resourceName = $"Fanex.NAP.Signin.AspNetCore.Resources.recheckin.js";
+            var resourceName = "Fanex.NAP.Signin.AspNetCore.Resources.recheckin.js";
             var text = ReadResourceContent(resourceName);
             var rootUrl = Url.Content("~/");
 
@@ -367,9 +365,9 @@ namespace Fanex.NAP.Signin.AspNetCore
         {
             var assembly = typeof(AuthController).Assembly;
 
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (var stream = assembly.GetManifestResourceStream(resourceName))
             {
-                using (StreamReader reader = new StreamReader(stream))
+                using (var reader = new StreamReader(stream))
                 {
                     return reader.ReadToEnd();
                 }
@@ -401,7 +399,7 @@ namespace Fanex.NAP.Signin.AspNetCore
             }
             else
             {
-                return Json(new { ErrorMsg = ViewResources.Wrong_password });
+                return Json(new { ErrorMsg = "Wrong password" });
             }
 
             return Json(new { ErrorMsg = "" });
@@ -429,28 +427,27 @@ namespace Fanex.NAP.Signin.AspNetCore
 
         public async Task<bool> IsAuthenticated(string userId, string onuserId, string time)
         {
-            var currentTime = securityService.GetTime();
-            var userIdDecrypt = Fanex.Data.Cryptography.DecryptPassword(userId.Replace(" ", "+"));
-            var onuserIdDecrypt = Fanex.Data.Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
-            var timeDecrypt = Fanex.Data.Cryptography.DecryptPassword(time.Replace(" ", "+"));
+            var currentTime = await securityService.GetTimeAsync();
+            var userIdDecrypt = Cryptography.DecryptPassword(userId.Replace(" ", "+"));
+            var onuserIdDecrypt = Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
+            var timeDecrypt = Cryptography.DecryptPassword(time.Replace(" ", "+"));
             var expiration = Convert.ToDateTime(currentTime) - Convert.ToDateTime(timeDecrypt);
 
             if (expiration.TotalSeconds <= TimeExipration)
             {
                 var criteria = SetSsoLoginParameter(userIdDecrypt, onuserIdDecrypt);
 
-                var onUserId = securityService.SSOLogin(criteria);
+                var onUserId = await securityService.SSOLoginAsync(criteria);
                 if (onUserId != 0)
                 {
-                    var user = userService.Get(criteria.UserId);
+                    var user = await userService.GetAsync(criteria.UserId);
                     napSession.UserId = user.Id;
                     napSession.UserName = user.Username;
                     napSession.OnUserId = onUserId;
 
                     if (napSettings.SiteId != 0)
                     {
-                        napSession.MenuItemList = userService.GetMenuItem(
-                                                                                user.Id,
+                        napSession.MenuItemList = await userService.GetMenuItemAsync(user.Id,
                                                                                 napSettings.SiteId,
                                                                                 napSettings.Environment,
                                                                                 true) as IList<MenuItem>;
@@ -478,7 +475,7 @@ namespace Fanex.NAP.Signin.AspNetCore
                 IP = GetClientIP(),
                 BrowserName = Request?.Headers["User-Agent"].ToString(),
                 CountryCode = ResolveCountry(HttpContext.Request)?.GeoId.ToString(CultureInfo.CurrentCulture),
-                Domain = HttpContext.Request?.Host.ToString(),
+                Domain = HttpContext.Request.Host.ToString(),
                 Platform = Environment.OSVersion.Platform.ToString()
             };
         }

@@ -2,7 +2,6 @@
 {
     using Fanex.NAP.Client.Configuration;
     using Fanex.NAP.Client.Exceptions;
-    using Fanex.NAP.Client.Resources;
     using Fanex.NAP.Core.Extensions;
     using Newtonsoft.Json;
     using System;
@@ -43,7 +42,7 @@
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized)
                     {
-                        throw new NAPApiException(string.Format(ViewResources.Dont_Have_Permission, requestUri));
+                        throw new NAPApiException(string.Format("You do not have permission to access this link: {0}", requestUri));
                     }
                     else if (response.StatusCode == HttpStatusCode.InternalServerError)
                     {

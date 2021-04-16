@@ -1,6 +1,5 @@
 ﻿namespace Fanex.NAP.Client.AspNetCore.Attributes
 {
-    using Fanex.NAP.Client.Resources;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc.Filters;
@@ -14,7 +13,7 @@
             if (IsAjaxRequest(context.HttpContext.Request))
             {
                 var response = context.HttpContext.Response;
-                var messageContent = $"<center><b>{ViewResources.UnauthorizeMsg}</b></center>";
+                var messageContent = $"<center><b>You are not authorized to access the requested resource!</b></center>";
                 response.StatusCode = (int)HttpStatusCode.Forbidden;
                 response.WriteAsync(messageContent);
             }

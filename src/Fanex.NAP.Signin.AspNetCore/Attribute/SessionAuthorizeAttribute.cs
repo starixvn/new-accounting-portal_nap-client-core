@@ -1,17 +1,17 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using System;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Fanex.NAP.Client.AspNetCore.Session;
+﻿using Fanex.NAP.Client.AspNetCore.Session;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using System.Linq;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Filters;
+using System;
+using System.Linq;
 
-namespace Fanex.NAP.Signin.AspNetCore
+namespace Fanex.NAP.Signin.AspNetCore.Attribute
 {
     /// <summary>
     /// Super authorize attribute.
     /// </summary>
-    [AttributeUsageAttribute(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     public class SessionAuthorizeAttribute : AuthorizeAttribute, IAuthorizationFilter
     {
         /// <summary>
@@ -42,8 +42,8 @@ namespace Fanex.NAP.Signin.AspNetCore
                 return true;
             }
 
-            var controllerDescriptor = filterContext.ActionDescriptor as ControllerActionDescriptor;
-            if (controllerDescriptor != null && controllerDescriptor.EndpointMetadata.Any(em => em.GetType() == typeof(AllowAnonymousAttribute)))
+            if (filterContext.ActionDescriptor is ControllerActionDescriptor controllerDescriptor
+                && controllerDescriptor.EndpointMetadata.Any(em => em.GetType() == typeof(AllowAnonymousAttribute)))
             {
                 return true;
             }
