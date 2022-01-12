@@ -18,8 +18,6 @@
 
         string ServiceUrls { get; }
 
-        string AccessKey { get; }
-
         int CacheDuration { get; }
 
         bool? ByPassProxyLocal { get; }

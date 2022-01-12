@@ -20,7 +20,6 @@
             Environment = GetValue<string>("Fanex.NAP.Client:Environment");
             UnauthorizeUrl = GetValue<string>("Fanex.NAP.Client:UnauthorizeUrl");
             ServiceUrls = GetValue<string>("Fanex.NAP.Client:ServiceUrls");
-            AccessKey = GetValue<string>("Fanex.NAP.Client:AccessKey");
             CacheDuration = GetValue<int>("Fanex.NAP.Client:CacheDuration");
             HubUrl = GetValue<string>("Fanex.NAP.Client:HubUrl");
             IsNapHub = SiteId == 0;
@@ -42,8 +41,6 @@
         public string UnauthorizeUrl { get; }
 
         public string ServiceUrls { get; }
-
-        public string AccessKey { get; }
 
         public int CacheDuration { get; }
 

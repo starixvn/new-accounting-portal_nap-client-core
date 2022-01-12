@@ -61,7 +61,7 @@
                 {
                     var siteLevelList = userService.GetSiteLevel(user.Id, napSettings.Environment);
 
-                    if (siteLevelList.Any(s => s.Site.Id == napSettings.SiteId))
+                    if (siteLevelList.Any(s => s.SiteId == napSettings.SiteId))
                     {
                         var loginParam = new LoginParameter
                         {

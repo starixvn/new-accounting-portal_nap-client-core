@@ -1,4 +1,13 @@
-﻿using Fanex.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using Fanex.Data;
 using Fanex.NAP.Client.Configuration;
 using Fanex.NAP.Client.Helpers.Web;
 using Fanex.NAP.Client.Models;
@@ -13,15 +22,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ONEbook.UM.Services;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Fanex.NAP.Signin.AspNetCore
 {
@@ -83,7 +83,7 @@ namespace Fanex.NAP.Signin.AspNetCore
                     string hashPassword = SHA256(user.Password + loginToken);
                     if (password == hashPassword)
                     {
-                        var group = user.Group == null ? null : await groupService.GetAsync(user.Group.Id);
+                        var group = user.GroupId == 0 ? null : await groupService.GetAsync(user.GroupId);
 
                         var siteLevelList = await userService.GetSiteLevelAsync(user.Id, napSettings.Environment);
 
@@ -97,7 +97,7 @@ namespace Fanex.NAP.Signin.AspNetCore
                             await SaveUserSession(user, username, onUserId);
 
                             if (napSession.MenuItemList != null &&
-                                napSession.MenuItemList.Where(m => m.Parent == null).ToList().Count > 0)
+                                napSession.MenuItemList.Where(m => m.ParentId <= 0).ToList().Count > 0)
                             {
                                 if (UserIsActiveOnThisSite(siteLevelList))
                                 {
@@ -259,6 +259,7 @@ namespace Fanex.NAP.Signin.AspNetCore
 
         private async Task SaveUserSession(User user, string userName, int onUserId)
         {
+            napSession.Level = userService.GetUserLevel(user.Id, napSettings.SiteId);
             napSession.UserId = user.Id;
             napSession.UserName = userName;
             napSession.OnUserId = onUserId;
@@ -273,7 +274,7 @@ namespace Fanex.NAP.Signin.AspNetCore
 
             foreach (var siteLevel in siteLevelList)
             {
-                if (siteLevel.Site.Id == napSettings.SiteId && siteLevel.IsActive)
+                if (siteLevel.SiteId == napSettings.SiteId && siteLevel.IsActive)
                 {
                     userIsActiveOnThisSite = true;
                 }
@@ -444,6 +445,7 @@ namespace Fanex.NAP.Signin.AspNetCore
                     napSession.UserId = user.Id;
                     napSession.UserName = user.Username;
                     napSession.OnUserId = onUserId;
+                    napSession.Level = await userService.GetUserLevelAsync(user.Id, napSettings.SiteId);
 
                     if (napSettings.SiteId != 0)
                     {

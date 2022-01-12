@@ -29,10 +29,6 @@
         bool UpdatePassword(int siteId, int userId, string password);
 
         Task<bool> UpdatePasswordAsync(int siteId, int userId, string password);
-
-        bool UpdateProfile(int siteId, UpdateUserInfoParameter parameter);
-
-        Task<bool> UpdateProfileAsync(int siteId, UpdateUserInfoParameter parameter);
     }
 
     public class SecurityService : ISecurityService
@@ -92,17 +88,6 @@
             Check.Argument.IsNotEmpty(password, "password");
             var userInfoClient = new UserInfoClient();
             return await userInfoClient.UpdatePassword(siteId, userId, password).ConfigureAwait(false);
-        }
-
-        public bool UpdateProfile(int siteId, UpdateUserInfoParameter parameter)
-            => UpdateProfileAsync(siteId, parameter).Result;
-
-        public async Task<bool> UpdateProfileAsync(int siteId, UpdateUserInfoParameter parameter)
-        {
-            Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-            Check.Argument.IsNotNull(parameter, "parameter");
-            var userInfoClient = new UserInfoClient();
-            return await userInfoClient.UpdateProfile(siteId, parameter).ConfigureAwait(false);
         }
     }
 }

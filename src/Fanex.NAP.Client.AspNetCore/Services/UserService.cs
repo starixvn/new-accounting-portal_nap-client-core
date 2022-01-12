@@ -1,11 +1,11 @@
 ﻿namespace Fanex.NAP.Client.Services
 {
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Clients;
     using Fanex.NAP.Core.Business;
     using Models;
     using Models.ValueObject;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
 
     public interface IUserService
     {
@@ -17,9 +17,9 @@
 
         Task<User> GetAsync(string username);
 
-        IEnumerable<User> GetAll();
+        int GetUserLevel(int userId, int siteId);
 
-        Task<IEnumerable<User>> GetAllAsync();
+        Task<int> GetUserLevelAsync(int userId, int siteId);
 
         IEnumerable<MenuItem> GetMenuItem(int userId, int siteId, string environment = Constant.UAT, bool? isActive = null);
 
@@ -33,33 +33,17 @@
 
         Task<IEnumerable<SiteLevel>> GetSiteLevelAsync(int userId, string environment = Constant.UAT);
 
-        int GetUserLevel(int userId, int siteId);
+        IEnumerable<FunctionPolicy> GetPermissions(int userId, int siteId, string parentFunctionKey, string environment = Constant.UAT);
 
-        Task<int> GetUserLevelAsync(int userId, int siteId);
-
-        bool HasAnyPermission(int userId, int siteId, string environment = Constant.UAT);
-
-        Task<bool> HasAnyPermissionAsync(int userId, int siteId, string environment = Constant.UAT);
+        Task<IEnumerable<FunctionPolicy>> GetPermissionsAsync(int userId, int siteId, string parentFunctionKey, string environment = Constant.UAT);
 
         bool IsHavingPermission(int userId, int siteId, string functionKey, Constant.Policy policy);
 
-        IEnumerable<FunctionPolicy> GetPermissions(int userId, int siteId, string parentFunctionKey, string environment = Constant.UAT);
+        Task<bool> IsHavingPermissionAsync(int userId, int siteId, string functionKey, Constant.Policy policy);
     }
 
     public class UserService : IUserService
     {
-        public bool HasAnyPermission(int userId, int siteId, string environment = Constant.UAT)
-            => HasAnyPermissionAsync(userId, siteId, environment).Result;
-
-        public async Task<bool> HasAnyPermissionAsync(int userId, int siteId, string environment = Constant.UAT)
-        {
-            Check.Argument.IsNotNegativeOrZero(userId, "userId");
-            Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-            Check.Argument.IsNotEmpty(environment, "environment");
-            var userClient = new UserClient();
-            return await userClient.HasAnyPermission(userId, siteId, environment).ConfigureAwait(false);
-        }
-
         public IEnumerable<MenuItem> GetMenuItem(int userId, int siteId, string environment = Constant.UAT, bool? isActive = null)
             => GetMenuItemAsync(userId, siteId, environment, isActive).Result;
 
@@ -101,14 +85,6 @@
             return await userClient.Get(username).ConfigureAwait(false);
         }
 
-        public IEnumerable<User> GetAll() => GetAllAsync().Result;
-
-        public async Task<IEnumerable<User>> GetAllAsync()
-        {
-            var userClient = new UserClient();
-            return await userClient.GetAll().ConfigureAwait(false);
-        }
-
         public int GetUserLevel(int userId, int siteId) => GetUserLevelAsync(userId, siteId).Result;
 
         public async Task<int> GetUserLevelAsync(int userId, int siteId)
@@ -130,17 +106,6 @@
             return await userClient.GetPermission(userId, siteId, functionKey).ConfigureAwait(false);
         }
 
-        public bool IsHavingPermission(int userId, int siteId, string functionKey, Constant.Policy policy)
-        {
-            Check.Argument.IsNotNegativeOrZero(userId, "userId");
-            Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-            Check.Argument.IsNotEmpty(functionKey, "functionKey");
-
-            int currentPolicy = GetPermission(userId, siteId, functionKey);
-
-            return currentPolicy >= (int)policy;
-        }
-
         public IEnumerable<FunctionPolicy> GetPermissions(int userId, int siteId, string parentFunctionKey, string environment = Constant.UAT)
             => GetPermissionsAsync(userId, siteId, parentFunctionKey, environment).Result;
 
@@ -152,15 +117,19 @@
             return await userClient.GetPermissions(userId, siteId, parentFunctionKey, environment).ConfigureAwait(false);
         }
 
-        public IEnumerable<UserPolicy> GetUserPolicies(string functionKey, int siteId)
-            => GetUserPoliciesAsync(functionKey, siteId).Result;
+        public bool IsHavingPermission(int userId, int siteId, string functionKey, Constant.Policy policy)
+            => IsHavingPermissionAsync(userId, siteId, functionKey, policy).Result;
 
-        public async Task<IEnumerable<UserPolicy>> GetUserPoliciesAsync(string functionKey, int siteId)
+        public async Task<bool> IsHavingPermissionAsync(int userId, int siteId, string functionKey, Constant.Policy policy)
         {
-            Check.Argument.IsNotEmpty(functionKey, "functionKey");
-            Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-            var userClient = new UserClient();
-            return await userClient.GetUserPolicies(functionKey, siteId).ConfigureAwait(false);
+            if (userId <= 0 || siteId <= 0)
+            {
+                return false;
+            }
+
+            var permission = await GetPermissionAsync(userId, siteId, functionKey);
+
+            return permission >= (int)policy;
         }
     }
 }

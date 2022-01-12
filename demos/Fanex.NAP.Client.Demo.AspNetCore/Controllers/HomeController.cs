@@ -13,7 +13,6 @@
         [NapAuth(FunctionKey = "Dashboard", Policy = Constant.Policy.Read, PermissionCache = true)]
         public IActionResult Index()
         {
-            var menuItem = new SiteService().GetMenuItemBySiteId(1, "UAT");
             return View();
         }
 

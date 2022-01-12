@@ -1,20 +1,17 @@
 ﻿namespace Fanex.NAP.Client.Clients
 {
-    using Fanex.NAP.Client.Configuration;
-    using Fanex.NAP.Client.Exceptions;
-    using Fanex.NAP.Core.Extensions;
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Net.Http.Headers;
-    using System.Security.Cryptography;
     using System.Text;
     using System.Threading.Tasks;
-    using System.Web;
+    using Fanex.NAP.Client.Configuration;
+    using Fanex.NAP.Client.Exceptions;
+    using Fanex.NAP.Core.Extensions;
+    using Newtonsoft.Json;
 
     internal class BaseClient
     {
@@ -38,65 +35,59 @@
 
             using (var message = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
-                using (var response = await SendAsync(message))
+                using (var response = await httpClient.SendAsync(message))
                 {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized)
-                    {
-                        throw new NAPApiException(string.Format("You do not have permission to access this link: {0}", requestUri));
-                    }
-                    else if (response.StatusCode == HttpStatusCode.InternalServerError)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        throw new NAPApiException(content);
-                    }
-                    else
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-
-                        result = DeserializeResult(result, content);
-                    }
+                    return await GetResponse<T>(response);
                 }
             }
-
-            return result;
         }
 
-        private static T DeserializeResult<T>(T result, string content)
+        private static async Task<T> GetResponse<T>(HttpResponseMessage response)
         {
-            if (!string.IsNullOrWhiteSpace(content))
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                try
-                {
-                    result = JsonConvert.DeserializeObject<T>(content);
-                }
-                catch
-                {
-                    throw new NAPApiException(content);
-                }
+                throw new NAPApiException($"No permission");
             }
-
-            return result;
-        }
-
-        protected async Task Send<TInput>(Uri requestUri, HttpMethod httpMethod, TInput body)
-        {
-            await Send<TInput, object>(requestUri, httpMethod, body);
-        }
-
-        protected async Task<TOutput> Send<TInput, TOutput>(Uri requestUri, HttpMethod httpMethod, TInput body)
-        {
-            using (var request = new HttpRequestMessage(httpMethod, requestUri))
+            else if (response.StatusCode == HttpStatusCode.InternalServerError)
             {
-                var json = JsonConvert.SerializeObject(body);
-                using (var stringContent = new StringContent(json, Encoding.UTF8, "application/json"))
-                {
-                    request.Content = stringContent;
-                    using (var response = await SendAsync(request))
-                    {
-                        ThrowIfResponseNotSuccessfulAsync(response);
+                throw new NAPApiException(await response.Content.ReadAsStringAsync());
+            }
+            else
+            {
+                var receivedContent = await response.Content.ReadAsStringAsync();
 
-                        var jsonResponse = await response.Content.ReadAsStringAsync();
-                        return JsonConvert.DeserializeObject<TOutput>(jsonResponse);
+                return DeserializeObject<T>(receivedContent);
+            }
+        }
+
+        private static T DeserializeObject<T>(string content)
+        {
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(content);
+            }
+            catch (Exception e)
+            {
+                throw new FormatException($"=======Received:===\r\n {content}\r\n========", e);
+            }
+        }
+
+        protected async Task<TOutput> Post<TInput, TOutput>(Uri requestUri, TInput body)
+        {
+            var json = JsonConvert.SerializeObject(body);
+            using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
+            {
+                using (var response = await httpClient.PostAsync(requestUri, content))
+                {
+                    ThrowIfResponseNotSuccessfulAsync(response);
+                    var receivedContent = await response.Content.ReadAsStringAsync();
+                    try
+                    {
+                        return JsonConvert.DeserializeObject<TOutput>(receivedContent);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception($"=======Received:===\r\n {receivedContent}\r\n========", e);
                     }
                 }
             }
@@ -133,56 +124,6 @@
             var uriBuilder = new UriBuilder(BaseAddress + relativePath) { Query = queryString };
 
             return uriBuilder.Uri;
-        }
-
-        protected async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request)
-        {
-            string requestContentBase64String = string.Empty;
-
-            string requestUri = HttpUtility.UrlEncode(request.RequestUri.AbsoluteUri.ToLower());
-
-            string requestHttpMethod = request.Method.Method;
-
-            // Calculate UNIX time
-            DateTime epochStart = new DateTime(1970, 01, 01, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan timeSpan = DateTime.UtcNow - epochStart;
-            string requestTimeStamp = Convert.ToUInt64(timeSpan.TotalSeconds).ToString();
-
-            // create random nonce for each request
-            string nonce = Guid.NewGuid().ToString("N");
-
-            // Checking if the request contains body, usually will be null wiht HTTP GET and DELETE
-            if (request.Content != null)
-            {
-                byte[] content = request.Content.ReadAsByteArrayAsync().Result;
-                MD5 md5 = MD5.Create();
-
-                // Hashing the request body, any change in request body will result in different hash, we'll incure message integrity
-                byte[] requestContentHash = md5.ComputeHash(content);
-                requestContentBase64String = Convert.ToBase64String(requestContentHash);
-            }
-
-            // Creating the raw signature string
-            string signatureRawData = string.Format("{0}{1}{2}{3}{4}{5}", napSettings.SiteId, requestHttpMethod, requestUri, requestTimeStamp, nonce, requestContentBase64String);
-
-            var secretKeyByteArray = Convert.FromBase64String(napSettings.AccessKey);
-
-            byte[] signature = Encoding.UTF8.GetBytes(signatureRawData);
-
-            using (HMACSHA256 hmac = new HMACSHA256(secretKeyByteArray))
-            {
-                byte[] signatureBytes = hmac.ComputeHash(signature);
-                string requestSignatureBase64String = Convert.ToBase64String(signatureBytes);
-
-                // Setting the values in the Authorization header using custom scheme (amx)
-                request.Headers.Authorization = new AuthenticationHeaderValue(
-                    "amx",
-                    string.Format("{0}:{1}:{2}:{3}", napSettings.SiteId, requestSignatureBase64String, nonce, requestTimeStamp));
-            }
-
-            var response = await httpClient.SendAsync(request);
-
-            return response;
         }
 
         protected string GetServiceUrl()

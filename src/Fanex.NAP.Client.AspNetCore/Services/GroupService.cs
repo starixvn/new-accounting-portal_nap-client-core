@@ -1,9 +1,9 @@
 ﻿namespace Fanex.NAP.Client.Services
 {
+    using System.Threading.Tasks;
     using Fanex.NAP.Client;
     using Fanex.NAP.Client.Clients;
     using Fanex.NAP.Client.Models;
-    using System.Threading.Tasks;
 
     public interface IGroupService
     {

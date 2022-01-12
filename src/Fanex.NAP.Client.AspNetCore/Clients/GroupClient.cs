@@ -17,7 +17,7 @@
 
         private class RelativePaths
         {
-            public const string Get = "/group/{0}";
+            public const string Get = "group/{0}";
         }
     }
 }

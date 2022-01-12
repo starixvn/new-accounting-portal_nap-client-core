@@ -11,7 +11,5 @@
         public bool IsDefault { get; set; }
 
         public bool IsActive { get; set; }
-
-        public Site Site { get; set; }
     }
 }

@@ -1,6 +1,5 @@
 ﻿namespace Fanex.NAP.Client.Clients
 {
-    using System.Net.Http;
     using System.Threading.Tasks;
 
     internal interface ILogoutClient
@@ -12,12 +11,12 @@
     {
         public async Task Logout(int onlineUserId)
         {
-            await Send<int>(CreateRequestUri(RelativePaths.Logout), HttpMethod.Post, onlineUserId);
+            await Get<int>(CreateRequestUri(string.Format(RelativePaths.Logout, onlineUserId)));
         }
 
         private class RelativePaths
         {
-            public const string Logout = "/logout/";
+            public const string Logout = "logout/{0}";
         }
     }
 }

@@ -9,6 +9,8 @@
 
         int UserId { get; set; }
 
+        int Level { get; set; }
+
         int OnUserId { get; set; }
 
         IList<MenuItem> MenuItemList { get; set; }
