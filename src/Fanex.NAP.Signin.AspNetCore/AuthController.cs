@@ -96,23 +96,15 @@ namespace Fanex.NAP.Signin.AspNetCore
 
                             await SaveUserSession(user, username, onUserId);
 
-                            if (napSession.MenuItemList != null &&
-                                napSession.MenuItemList.Where(m => m.ParentId <= 0).ToList().Count > 0)
+                            if (UserIsActiveOnThisSite(siteLevelList))
                             {
-                                if (UserIsActiveOnThisSite(siteLevelList))
-                                {
-                                    redirectUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~/") : redirectUrl;
-                                    return Redirect(redirectUrl);
-                                }
+                                redirectUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~/") : redirectUrl;
+                                return Redirect(redirectUrl);
+                            }
 
-                                await DoSignOut();
-                                indexViewModel.Message = "Your account was suspended";
-                            }
-                            else
-                            {
-                                await DoSignOut();
-                                indexViewModel.Message = "You have no permission on any Menu";
-                            }
+                            await DoSignOut();
+                            indexViewModel.Message = "Your account was suspended";
+
                         }
                         else
                         {
@@ -191,11 +183,12 @@ namespace Fanex.NAP.Signin.AspNetCore
 
         private void CreateUserMenu(User user)
         {
-            napSession.MenuItemList = (IList<MenuItem>)userService.GetMenuItem(
+            napSession.MenuItemList = userService.GetMenuItem(
                 user.Id,
                 napSettings.SiteId,
                 napSettings.Environment,
-                true);
+                true)
+                .ToList();
         }
 
         private async Task CreateAuthInfo(User user)

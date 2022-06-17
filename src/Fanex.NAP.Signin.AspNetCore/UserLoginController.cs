@@ -12,5 +12,12 @@
         {
             return RedirectToAction("SSO", "Auth", new { userId, onuserId, time, redirectUrl });
         }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return RedirectToAction("Index", "Auth");
+        }
     }
 }

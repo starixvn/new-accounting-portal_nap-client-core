@@ -40,6 +40,14 @@
         bool IsHavingPermission(int userId, int siteId, string functionKey, Constant.Policy policy);
 
         Task<bool> IsHavingPermissionAsync(int userId, int siteId, string functionKey, Constant.Policy policy);
+
+        bool IgnoredOtp(int userId, string system);
+
+        Task<bool> IgnoredOtpAsync(int userId, string system);
+
+        bool VerifyOtp(int userId, string system, string otp);
+
+        Task<bool> VerifyOtpAsync(int userId, string system, string otp);
     }
 
     public class UserService : IUserService
@@ -131,5 +139,22 @@
 
             return permission >= (int)policy;
         }
+
+        public bool IgnoredOtp(int userId, string system) => IgnoredOtpAsync(userId, system).Result;
+
+        public async Task<bool> IgnoredOtpAsync(int userId, string system)
+        {
+            var userClient = new UserClient();
+            return await userClient.IgnoredOtpAsync(userId, system);
+        }
+
+        public bool VerifyOtp(int userId, string system, string otp) => VerifyOtpAsync(userId, system, otp).Result;
+
+        public async Task<bool> VerifyOtpAsync(int userId, string system, string otp)
+        {
+            var userClient = new UserClient();
+            return await userClient.VerifyOtpAsync(userId, system, otp);
+        }
+
     }
 }

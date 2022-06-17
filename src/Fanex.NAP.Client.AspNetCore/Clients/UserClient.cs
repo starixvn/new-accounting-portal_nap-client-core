@@ -22,6 +22,10 @@
 
         Task<IEnumerable<FunctionPolicy>> GetPermissions(int userId, int siteId, string parentFunctionKey,
             string environment = Constant.UAT);
+
+        Task<bool> IgnoredOtpAsync(int userId, string system);
+
+        Task<bool> VerifyOtpAsync(int userId, string system, string otp);
     }
 
     internal class UserClient : BaseClient, IUserClient
@@ -63,6 +67,18 @@
                 CreateRequestUri(string.Format(RelativePaths.GetPermissions, userId),
                 new { siteId, parentFunctionKey, environment }));
 
+        public async Task<bool> IgnoredOtpAsync(int userId, string system)
+        {
+            var path = string.Format(RelativePaths.IgnoredOtp, userId);
+            return await Get<bool>(CreateRequestUri(path, new { system }));
+        }
+
+        public async Task<bool> VerifyOtpAsync(int userId, string system, string otp)
+        {
+            var path = string.Format(RelativePaths.VerifyOtp, userId);
+            return await Get<bool>(CreateRequestUri(path, new { system, otp }));
+        }
+
         private static class RelativePaths
         {
             public const string GetById = "user/{0}";
@@ -71,7 +87,9 @@
             public const string GetPermissions = "user/{0}/permissions";
             public const string GetMenuItem = "user/{0}/menuItem";
             public const string GetSiteLevel = "user/{0}/sitelevel";
-            public const string GetUserLevel = "/user/{0}/levelonsite/{1}";
+            public const string GetUserLevel = "user/{0}/levelonsite/{1}";
+            public const string IgnoredOtp = "user/{0}/ignored-otp";
+            public const string VerifyOtp = "user/{0}/verify-otp";
         }
     }
 }
