@@ -12,7 +12,6 @@ using Fanex.NAP.Client.Configuration;
 using Fanex.NAP.Client.Helpers.Web;
 using Fanex.NAP.Client.Models;
 using Fanex.NAP.Client.Models.ParameterObject;
-using Fanex.NAP.Client.Models.ValueObject;
 using Fanex.NAP.Client.Services;
 using Fanex.NAP.Signin.AspNetCore.Models;
 using Fanex.NAP.Signin.AspNetCore.ViewModel;
@@ -21,6 +20,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using ONEbook.UM.Services;
 
 namespace Fanex.NAP.Signin.AspNetCore
@@ -29,18 +29,29 @@ namespace Fanex.NAP.Signin.AspNetCore
     {
         #region members
 
+        private const string FormTokenName = "__SecureFormToken";
+        private const string OtpSite = "NAP";
+
         private readonly INapSession napSession;
         private readonly ISecurityService securityService;
         private readonly IGroupService groupService;
         private readonly IUserService userService;
         private readonly IMaintenanceService maintenanceService;
         private readonly INapSettings napSettings;
+        private readonly IConfiguration configuration;
 
         #endregion members
 
         #region ctors
 
-        public AuthController(INapSession napSession, ISecurityService securityService, IGroupService groupService, IUserService userService, IMaintenanceService maintenanceService, INapSettings napSettings)
+        public AuthController(
+            INapSession napSession,
+            ISecurityService securityService,
+            IGroupService groupService,
+            IUserService userService,
+            IMaintenanceService maintenanceService,
+            INapSettings napSettings,
+            IConfiguration configuration)
         {
             this.napSession = napSession;
             this.securityService = securityService;
@@ -48,85 +59,132 @@ namespace Fanex.NAP.Signin.AspNetCore
             this.userService = userService;
             this.maintenanceService = maintenanceService;
             this.napSettings = napSettings;
+            this.configuration = configuration;
         }
 
         #endregion ctors
 
         #region sign in
 
+        private string FormToken
+        {
+            get
+            {
+                var token = HttpContext.Session.GetString(FormTokenName);
+
+                return string.IsNullOrEmpty(token) ? string.Empty : token;
+            }
+
+            set
+            {
+                HttpContext.Session.SetString(FormTokenName, value);
+            }
+        }
+
         [AllowAnonymous]
         [HttpGet]
         public IActionResult Index()
         {
+
             var indexViewModel = new IndexViewModel();
 
-            if (!napSettings.IsNapHub && !napSettings.EnableDirectLogin)
+            if (!napSettings.EnableDirectLogin)
             {
-                // if login-directly feature is disabled then redirect users to NAP Hub
                 return Redirect(napSettings.HubUrl);
             }
 
+            GenerateNewToken();
             return View("Index", indexViewModel);
         }
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> Index(string username, string password, string loginToken = "", string redirectUrl = "")
+        public async Task<IActionResult> Index(string username, string password, string loginToken = "")
         {
             var indexViewModel = new IndexViewModel();
 
-            if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
+            if (IsValidUserPassword(username, password, loginToken))
             {
-                var user = await userService.GetAsync(username.Trim());
-                if (user != null)
+                var user = userService.Get(username.Trim());
+
+                if (IsAuthorizedUser(user))
                 {
-                    string hashPassword = SHA256(user.Password + loginToken);
-                    if (password == hashPassword)
+                    if (IsActivatedUser(user))
                     {
-                        var group = user.GroupId == 0 ? null : await groupService.GetAsync(user.GroupId);
-
-                        var siteLevelList = await userService.GetSiteLevelAsync(user.Id, napSettings.Environment);
-
-                        if ((group == null || group.IsActive) &&
-                            siteLevelList.Any(x => x.IsActive))
-                        {
-                            var criteria = SetUserCheckInCriteria(user.Id);
-                            var onUserId = await securityService.LoginAsync(criteria);
-
-
-                            await SaveUserSession(user, username, onUserId);
-
-                            if (UserIsActiveOnThisSite(siteLevelList))
-                            {
-                                redirectUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~/") : redirectUrl;
-                                return Redirect(redirectUrl);
-                            }
-
-                            await DoSignOut();
-                            indexViewModel.Message = "Your account was suspended";
-
-                        }
-                        else
-                        {
-                            indexViewModel.Message = siteLevelList.Any() ? "Your_account_was_suspended" : "You have no authorization";
-                        }
+                        return await LoginFlow(user);
                     }
                     else
                     {
-                        indexViewModel.Message = "Invalid Username or Password";
+                        indexViewModel.Message = "Your account was suspended";
                     }
                 }
                 else
                 {
-                    indexViewModel.Message = "Invalid Username or Password";
+                    indexViewModel.Message = "You have no authorization"; ;
                 }
             }
             else
             {
-                indexViewModel.Message = "Invalid input!";
+                indexViewModel.Message = "Invalid Username or Password";
             }
 
+            GenerateNewToken();
+            indexViewModel.FormToken = FormToken;
+
             return View("Index", indexViewModel);
+        }
+
+        private bool IsValidUserPassword(string username, string password, string token)
+        {
+            if (!IsValidToken(token)
+                || string.IsNullOrEmpty(username)
+                || string.IsNullOrEmpty(password))
+            {
+                return false;
+            }
+
+            var user = userService.Get(username.Trim());
+
+            if (user == null || user.Id == 0)
+            {
+                return false;
+            }
+
+            string hashPassword = SHA256(user.Password + token);
+            if (password != hashPassword)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+
+        private bool IsAuthorizedUser(User user)
+        {
+            var group = user.GroupId == 0 ? null : groupService.Get(user.GroupId);
+
+            var siteLevelList = userService.GetSiteLevel(user.Id, napSettings.Environment);
+
+            return (group == null || group.IsActive) &&
+                 siteLevelList.Any(x => x.IsActive);
+        }
+
+        private bool IsActivatedUser(User user)
+        {
+            var siteLevelList = userService.GetSiteLevel(user.Id, napSettings.Environment);
+
+            bool userIsActiveOnThisSite = false;
+
+            foreach (var siteLevel in siteLevelList)
+            {
+                if (siteLevel.SiteId == napSettings.SiteId && siteLevel.IsActive)
+                {
+                    userIsActiveOnThisSite = true;
+                }
+            }
+
+            return userIsActiveOnThisSite;
         }
 
         #endregion sign in
@@ -261,20 +319,6 @@ namespace Fanex.NAP.Signin.AspNetCore
             await CreateAuthInfo(user);
         }
 
-        private bool UserIsActiveOnThisSite(IEnumerable<SiteLevel> siteLevelList)
-        {
-            bool userIsActiveOnThisSite = false;
-
-            foreach (var siteLevel in siteLevelList)
-            {
-                if (siteLevel.SiteId == napSettings.SiteId && siteLevel.IsActive)
-                {
-                    userIsActiveOnThisSite = true;
-                }
-            }
-
-            return userIsActiveOnThisSite;
-        }
 
         private string SHA256(string input)
         {
@@ -290,6 +334,36 @@ namespace Fanex.NAP.Signin.AspNetCore
             return encrypted;
         }
         #endregion helpers
+
+        #region Token
+
+        private void AddTokenToCookie(string loginToken)
+        {
+            HttpContext.Response.Cookies.Append(
+                FormTokenName,
+                loginToken,
+                new CookieOptions { Path = "/" }
+            );
+        }
+
+        private bool IsValidToken(string loginToken)
+        {
+            return !string.IsNullOrWhiteSpace(loginToken)
+                && FormToken == loginToken
+                && Request.Cookies[FormTokenName] != null
+                && loginToken == Request.Cookies[FormTokenName];
+        }
+
+        private void GenerateNewToken()
+        {
+            string loginToken = Guid.NewGuid().ToString("N");
+            FormToken = loginToken;
+            AddTokenToCookie(loginToken);
+        }
+
+
+
+        #endregion
 
         #region common
 
@@ -403,7 +477,7 @@ namespace Fanex.NAP.Signin.AspNetCore
         #endregion
 
         #region SSO
-        private const int TimeExipration = 30;
+        private const int TimeExipration = 60;
 
         [AllowAnonymous]
         [HttpGet]
@@ -473,6 +547,85 @@ namespace Fanex.NAP.Signin.AspNetCore
                 Domain = HttpContext.Request.Host.ToString(),
                 Platform = Environment.OSVersion.Platform.ToString()
             };
+        }
+
+        #endregion
+
+        #region LoginFlow
+
+        private async Task<ActionResult> LoginFlow(User user)
+        {
+            var ignoredOtp = !napSettings.EnableOtp
+                || (await userService.IgnoredOtpAsync(user.Id, OtpSite));
+
+            if (ignoredOtp)
+            {
+                return await DefaultLoginFlow(user);
+            }
+            else
+            {
+                HttpContext.Session.SetInt32("OtpUserId", user.Id);
+                return RedirectToAction("OtpLoginFlow");
+            }
+        }
+
+        private async Task<ActionResult> DefaultLoginFlow(User user)
+        {
+            var criteria = SetUserCheckInCriteria(user.Id);
+            var onUserId = await securityService.LoginAsync(criteria);
+
+            await SaveUserSession(user, user.Username, onUserId);
+            return Redirect("~/");
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> OtpLoginFlow()
+        {
+            var otpUserId = HttpContext.Session.GetInt32("OtpUserId");
+            var userId = otpUserId.HasValue ? otpUserId.Value : 0;
+            if (userId == 0)
+            {
+                return Redirect(configuration.GetSection("AuthSettings:LoginPath").Value);
+            }
+
+            var ignoredOtp = !napSettings.EnableOtp
+                || (await userService.IgnoredOtpAsync(userId, OtpSite));
+
+            if (ignoredOtp)
+            {
+                return RedirectToAction("Index");
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> OtpLoginFlow(string otp)
+        {
+            ViewBag.Message = string.Empty;
+            var otpUserId = HttpContext.Session.GetInt32("OtpUserId");
+            var userId = otpUserId.HasValue ? otpUserId.Value : 0;
+            var ignoredOtp = !napSettings.EnableOtp
+                || (await userService.IgnoredOtpAsync(userId, OtpSite));
+            if (userId == 0 || ignoredOtp)
+            {
+                HttpContext.Session.SetInt32("OtpUserId", 0);
+                return RedirectToAction("Index");
+            }
+
+            var validOtp = !string.IsNullOrEmpty(otp)
+                && (await userService.VerifyOtpAsync(userId, OtpSite, otp));
+
+            if (validOtp)
+            {
+                HttpContext.Session.SetInt32("OtpUserId", 0);
+                var user = userService.Get(userId);
+                return await DefaultLoginFlow(user);
+            }
+
+            ViewBag.Message = "Invalid OTP. Please try again";
+
+            return View();
         }
 
         #endregion

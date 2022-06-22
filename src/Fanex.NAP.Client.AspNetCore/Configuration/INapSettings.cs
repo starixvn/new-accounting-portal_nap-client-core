@@ -4,6 +4,8 @@
     {
         bool IsNapHub { get; }
 
+        bool EnableOtp { get; }
+
         bool EnableDirectLogin { get; }
 
         bool EnableReCheckIn { get; }
