@@ -10,33 +10,14 @@
       - Redirect to login page in NapSuperAuth attribute</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\AccessDenied.css" />
-    <EmbeddedResource Include="Resources\changepassword.css" />
-    <EmbeddedResource Include="Resources\cryptojs.js" />
-    <EmbeddedResource Include="Resources\error.css" />
-    <EmbeddedResource Include="Resources\jquery-1.8.0.min.js" />
-    <EmbeddedResource Include="Resources\jquery.validate.min.js" />
-    <EmbeddedResource Include="Resources\jquery.validate.unobtrusive.min.js" />
-    <EmbeddedResource Include="Resources\jquery.validationEngine-en.js" />
-    <EmbeddedResource Include="Resources\jquery.validationEngine.js" />
-    <EmbeddedResource Include="Resources\ReCheckIn.js" />
-    <EmbeddedResource Include="Resources\validationEngine.jquery.css" />
-    <EmbeddedResource Include="Views\AccessDenied.cshtml" />
-    <EmbeddedResource Include="Views\ChangePassword.cshtml" />
-    <EmbeddedResource Include="Views\Error.cshtml" />
-    <EmbeddedResource Include="Views\Index.cshtml" />
-    <EmbeddedResource Include="Views\NotFound.cshtml" />
-    <EmbeddedResource Include="Views\Offline.cshtml" />
-  </ItemGroup>
-
+ 
   <ItemGroup>
     <PackageReference Include="Fanex.Data" Version="4.2.2" />
-    <PackageReference Include="ONEbook.UM.AspNetCore" Version="3.1.0-beta05" />
+    <PackageReference Include="ONEbook.UM.AspNetCore" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Fanex.NAP.Client.AspNetCore\Fanex.NAP.Client.AspNetCore.csproj" />
   </ItemGroup>
+
 </Project>

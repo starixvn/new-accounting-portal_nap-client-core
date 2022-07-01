@@ -51,8 +51,8 @@
         </div>
     }
 
-    <script src="@Url.Content("~/Auth/Static")?url=jquery-1.8.0.min.js" type="text/javascript"></script>
-    <script src="@Url.Content("~/Auth/Static")?url=cryptojs.js" type="text/javascript"></script>
+    <script src="@Url.Content("~/nap-auth/jquery-1.8.0.min.js")" type="text/javascript"></script>
+    <script src="@Url.Content("~/nap-auth/cryptojs.js")" type="text/javascript"></script>
     <script type="text/javascript">
 
         var msg, username, password, btnSubmit;
@@ -76,7 +76,8 @@
             $('#submit').click(function (e) {
                 var pwdInputByUser = $("#password").val();
                 var pwdInDb = CryptoJS.CfsEnCode(pwdInputByUser);
-                var hashPassword = CryptoJS.SHA256(pwdInDb);
+                var loginToken = $("#loginToken").val();
+                var hashPassword = CryptoJS.SHA256(pwdInDb + loginToken);
 
                 $("#password").val(hashPassword);
             });

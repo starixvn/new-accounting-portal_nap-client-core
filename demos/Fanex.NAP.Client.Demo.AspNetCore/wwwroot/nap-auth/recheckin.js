@@ -1,14 +1,13 @@
-
 function ReCheckin() {
-    var urlRecheckIn = window.rootUrl + "Auth/ReCheckIn";
-    var urlLogout = window.rootUrl + "Auth/LogOut";
-    var urlOffline = window.rootUrl + "Auth/Offline";
+    var urlRecheckIn = window.rootUrl + 'Auth/ReCheckIn';
+    var urlLogout = window.rootUrl + 'Auth/LogOut';
+    var urlOffline = window.rootUrl + 'Auth/Offline';
     var xmlhttp = new XMLHttpRequest();
-    
+
     xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
             var result = JSON.parse(xmlhttp.responseText);
-            
+
             if (xmlhttp.status === 200) {
                 if (result.IsKickedOut) {
                     alert('You have logged in from another session or your login session has expired!');
@@ -25,7 +24,7 @@ function ReCheckin() {
         }
     };
 
-    xmlhttp.open("POST", urlRecheckIn, true);
+    xmlhttp.open('POST', urlRecheckIn, true);
     xmlhttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     xmlhttp.send();
 }

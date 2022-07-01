@@ -37,30 +37,25 @@
             {
                 using (var response = await httpClient.SendAsync(message))
                 {
-                    return await GetResponse<T>(response);
+                    if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        throw new NAPApiException($"No permission");
+                    }
+                    else if (response.StatusCode == HttpStatusCode.InternalServerError)
+                    {
+                        throw new NAPApiException(await response.Content.ReadAsStringAsync());
+                    }
+                    else
+                    {
+                        var receivedContent = await response.Content.ReadAsStringAsync();
+
+                        return DeserializeObject<T>(requestUri, receivedContent);
+                    }
                 }
             }
         }
 
-        private static async Task<T> GetResponse<T>(HttpResponseMessage response)
-        {
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                throw new NAPApiException($"No permission");
-            }
-            else if (response.StatusCode == HttpStatusCode.InternalServerError)
-            {
-                throw new NAPApiException(await response.Content.ReadAsStringAsync());
-            }
-            else
-            {
-                var receivedContent = await response.Content.ReadAsStringAsync();
-
-                return DeserializeObject<T>(receivedContent);
-            }
-        }
-
-        private static T DeserializeObject<T>(string content)
+        private static T DeserializeObject<T>(Uri requestUri, string content)
         {
             try
             {
@@ -68,7 +63,7 @@
             }
             catch (Exception e)
             {
-                throw new FormatException($"=======Received:===\r\n {content}\r\n========", e);
+                throw new Exception($"=====RequestUri:{requestUri}=======Received:===\r\n {content}\r\n========", e);
             }
         }
 
@@ -87,7 +82,7 @@
                     }
                     catch (Exception e)
                     {
-                        throw new Exception($"=======Received:===\r\n {receivedContent}\r\n========", e);
+                        throw new Exception($"=====RequestUri:{requestUri}=======Received:===\r\n {receivedContent}\r\n========", e);
                     }
                 }
             }

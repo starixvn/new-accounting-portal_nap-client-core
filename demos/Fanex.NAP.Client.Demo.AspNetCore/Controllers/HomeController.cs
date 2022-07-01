@@ -1,11 +1,10 @@
 ﻿namespace Fanex.Nap.Client.AspNetCore.DemoSite.Controllers
 {
+    using System.Diagnostics;
     using Fanex.Nap.Client.AspNetCore.DemoSite.Models;
     using Fanex.NAP.Client.AspNetCore.Attributes;
-    using Fanex.NAP.Client.Services;
     using Fanex.NAP.Core.Business;
     using Microsoft.AspNetCore.Mvc;
-    using System.Diagnostics;
 
     [NapSuperAuth]
     public class HomeController : Controller
@@ -16,7 +15,7 @@
             return View();
         }
 
-        [NapAuth(FunctionKey = "SourceCode", Policy = Constant.Policy.Host)]
+        [NapAuth(FunctionKey = "Dashboard", Policy = Constant.Policy.Read)]
         public IActionResult SourceCode()
         {
             ViewData["Message"] = "Your application description page.";
@@ -24,7 +23,7 @@
             return View();
         }
 
-        [NapAuth(FunctionKey = "Contact", Policy = Constant.Policy.Host)]
+        [NapAuth(FunctionKey = "Dashboard", Policy = Constant.Policy.Read)]
         public IActionResult Contact()
         {
             ViewData["Message"] = "Your contact page.";

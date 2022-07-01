@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Fanex.NAP.Client.AspNetCore.Configuration;
 using Fanex.NAP.Client.AspNetCore.Session;
 using Fanex.NAP.Client.Configuration;
@@ -10,7 +12,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Threading.Tasks;
+using ONEbook.UM.AspNetCore;
+using ONEbook.UM.Configurations;
+using ONEbook.UM.Helpers;
+using ONEbook.UM.Services;
+using ONEbook.UM.Transport;
 
 namespace Fanex.NAP.Client.Demo.AspNetCore
 {
@@ -28,10 +34,16 @@ namespace Fanex.NAP.Client.Demo.AspNetCore
         {
             services.AddControllersWithViews();
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
+                  .AddCookie(options =>
                 {
-                    options.LoginPath = "/Login/Index";
-                    options.LogoutPath = "/Login/Logout";
+                    options.LoginPath = Configuration.GetSection("AuthSettings:LoginPath").Value;
+                    options.LogoutPath = Configuration.GetSection("AuthSettings:LogoutPath").Value;
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(int.Parse(Configuration.GetSection("AuthSettings:CookieTimeOut").Value));
+                    options.Cookie = new CookieBuilder
+                    {
+                        Name = "Fanex.OWP.Cookie",
+                        SecurePolicy = CookieSecurePolicy.SameAsRequest
+                    };
                     options.Events.OnSigningOut = context =>
                     {
                         context.Response.Redirect(options.LoginPath);
@@ -46,12 +58,21 @@ namespace Fanex.NAP.Client.Demo.AspNetCore
                 options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             });
 
+            services.AddSingleton(new UMClientConfiguration().Initialize(Configuration));
+
             services.AddSession();
-            services.AddSingleton<INapSettings>(new NapSettings(Configuration));
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<INapSession, NapSession>();
+            services.AddSingleton<INapSettings>(new NapSettings(Configuration));
+            services.AddSingleton<IGroupService, GroupService>();
             services.AddSingleton<IUserService, UserService>();
             services.AddSingleton<ISecurityService, SecurityService>();
+            services.AddSingleton<ISiteService, SiteService>();
+
+            services.AddSingleton<IMaintenanceService, MaintenanceService>();
+            services.AddSingleton<IUMCacheService, UMCacheService>();
+            services.AddSingleton<IUMRestClient, UMRestClient>();
+            services.AddSingleton<IHttpContextHelper, HttpContextHelper>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -67,7 +88,7 @@ namespace Fanex.NAP.Client.Demo.AspNetCore
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler("/Auth/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }

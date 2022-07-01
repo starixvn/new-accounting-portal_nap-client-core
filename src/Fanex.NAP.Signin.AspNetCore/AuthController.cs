@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -13,6 +12,7 @@ using Fanex.NAP.Client.Helpers.Web;
 using Fanex.NAP.Client.Models;
 using Fanex.NAP.Client.Models.ParameterObject;
 using Fanex.NAP.Client.Services;
+using Fanex.NAP.Core.SignIn;
 using Fanex.NAP.Signin.AspNetCore.Models;
 using Fanex.NAP.Signin.AspNetCore.ViewModel;
 using Microsoft.AspNetCore.Authentication;
@@ -25,6 +25,7 @@ using ONEbook.UM.Services;
 
 namespace Fanex.NAP.Signin.AspNetCore
 {
+    [AllowAnonymous]
     public class AuthController : Controller
     {
         #region members
@@ -81,23 +82,20 @@ namespace Fanex.NAP.Signin.AspNetCore
             }
         }
 
-        [AllowAnonymous]
         [HttpGet]
         public IActionResult Index()
         {
-
-            var indexViewModel = new IndexViewModel();
-
             if (!napSettings.EnableDirectLogin)
             {
                 return Redirect(napSettings.HubUrl);
             }
 
+            HttpContext.Session.SetInt32("OtpUserId", 0);
             GenerateNewToken();
+            var indexViewModel = new IndexViewModel { FormToken = FormToken };
             return View("Index", indexViewModel);
         }
 
-        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Index(string username, string password, string loginToken = "")
         {
@@ -120,7 +118,7 @@ namespace Fanex.NAP.Signin.AspNetCore
                 }
                 else
                 {
-                    indexViewModel.Message = "You have no authorization"; ;
+                    indexViewModel.Message = "You have no authorization";
                 }
             }
             else
@@ -191,19 +189,20 @@ namespace Fanex.NAP.Signin.AspNetCore
 
         #region sign out
 
-        [Authorize]
         [HttpGet]
-        public async Task<ActionResult> LogOut()
+        public async Task<ActionResult> LogOut(string redirectUrl = "")
         {
             await DoSignOut();
-            return RedirectToAction("Index");
+
+            redirectUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~/Auth") : redirectUrl;
+
+            return Redirect(redirectUrl);
         }
 
         #endregion sign out
 
         #region re check in
 
-        [AllowAnonymous]
         public ActionResult ReCheckIn()
         {
             if (!napSettings.EnableReCheckIn)
@@ -333,6 +332,7 @@ namespace Fanex.NAP.Signin.AspNetCore
 
             return encrypted;
         }
+
         #endregion helpers
 
         #region Token
@@ -356,7 +356,8 @@ namespace Fanex.NAP.Signin.AspNetCore
 
         private void GenerateNewToken()
         {
-            string loginToken = Guid.NewGuid().ToString("N");
+            // string loginToken = Guid.NewGuid().ToString("N");
+            var loginToken = "26405e7fa3ea4ee7a1912ac014de4c54";
             FormToken = loginToken;
             AddTokenToCookie(loginToken);
         }
@@ -367,7 +368,6 @@ namespace Fanex.NAP.Signin.AspNetCore
 
         #region common
 
-        [AllowAnonymous]
         public ActionResult Offline()
         {
             var isDownTime = maintenanceService.IsUnderMaintenance();
@@ -383,37 +383,16 @@ namespace Fanex.NAP.Signin.AspNetCore
             return View("Offline", viewModel);
         }
 
-        [AllowAnonymous]
         public ActionResult AccessDenied()
         {
             return View("AccessDenied");
         }
 
-        [AllowAnonymous]
         public ActionResult Error()
         {
             return View("Error");
         }
 
-        [AllowAnonymous]
-        public ActionResult Static(string url)
-        {
-            var contentType = "application/octet-stream";
-            if (url.EndsWith("css"))
-            {
-                contentType = "text/css";
-            }
-            else if (url.EndsWith("js"))
-            {
-                contentType = "text/javascript";
-            }
-
-            var resourceName = $"Fanex.NAP.Signin.AspNetCore.Resources.{url}";
-            var text = ReadResourceContent(resourceName);
-            return Content(text, contentType);
-        }
-
-        [AllowAnonymous]
         public ActionResult RecheckinScript()
         {
             if (!napSettings.EnableReCheckIn)
@@ -421,25 +400,10 @@ namespace Fanex.NAP.Signin.AspNetCore
                 return Content(string.Empty, "text/javascript");
             }
 
-            var resourceName = "Fanex.NAP.Signin.AspNetCore.Resources.recheckin.js";
-            var text = ReadResourceContent(resourceName);
+            var text = Helper.ReCheckInScript;
             var rootUrl = Url.Content("~/");
 
             return Content($"window.rootUrl='{rootUrl}';\r\n{text}", "text/javascript");
-        }
-
-
-        private string ReadResourceContent(string resourceName)
-        {
-            var assembly = typeof(AuthController).Assembly;
-
-            using (var stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                using (var reader = new StreamReader(stream))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
         }
 
         #endregion
@@ -479,7 +443,6 @@ namespace Fanex.NAP.Signin.AspNetCore
         #region SSO
         private const int TimeExipration = 60;
 
-        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> SSO(string userId, string onuserId, string time, string redirectUrl = "")
         {
@@ -630,7 +593,6 @@ namespace Fanex.NAP.Signin.AspNetCore
 
         #endregion
 
-        [AllowAnonymous]
         public ActionResult WhoAmI()
         {
             return Content($"Environment:{Environment.GetEnvironmentVariable("ASPNETCORE_APPL_PATH")}");
