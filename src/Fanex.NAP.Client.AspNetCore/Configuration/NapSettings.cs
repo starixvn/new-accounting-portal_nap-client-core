@@ -14,20 +14,22 @@
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
 
             SiteId = GetValue<int>("Fanex.NAP.Client:SiteId");
-            EnableDirectLogin = GetValue<bool>("Fanex.NAP.Client:EnableDirectLogin");
-            EnableReCheckIn = GetValue<bool>("Fanex.NAP.Client:EnableReCheckIn");
+            EnableDirectLogin = GetBooleanValue("Fanex.NAP.Client:EnableDirectLogin");
+            EnableReCheckIn = GetBooleanValue("Fanex.NAP.Client:EnableReCheckIn");
             HubUrl = GetValue<string>("Fanex.NAP.Client:HubUrl");
             Environment = GetValue<string>("Fanex.NAP.Client:Environment");
             UnauthorizeUrl = GetValue<string>("Fanex.NAP.Client:UnauthorizeUrl");
             ServiceUrls = GetValue<string>("Fanex.NAP.Client:ServiceUrls");
-            AccessKey = GetValue<string>("Fanex.NAP.Client:AccessKey");
             CacheDuration = GetValue<int>("Fanex.NAP.Client:CacheDuration");
             HubUrl = GetValue<string>("Fanex.NAP.Client:HubUrl");
-            IsNapHub = SiteId == 0;
+            IsNapHub = GetBooleanValue("Fanex.NAP.Client:IsNapHub");
+            EnableOtp = GetBooleanValue("Fanex.NAP.Client:EnableOtp");
             ByPassProxyLocal = GetValue<bool?>("Fanex.NAP.Client:BypassProxyLocal");
         }
 
         public bool IsNapHub { get; }
+
+        public bool EnableOtp { get; }
 
         public bool EnableDirectLogin { get; }
 
@@ -43,8 +45,6 @@
 
         public string ServiceUrls { get; }
 
-        public string AccessKey { get; }
-
         public int CacheDuration { get; }
 
         public bool? ByPassProxyLocal { get; }
@@ -56,6 +56,19 @@
             var typeConverter = TypeDescriptor.GetConverter(typeof(T));
 
             return (T)typeConverter.ConvertFromString(value);
+        }
+
+        private bool GetBooleanValue(string key)
+        {
+            var value = configuration[key];
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+
+
+            value = value.ToLower();
+            return value == "true" || value == "1";
         }
     }
 }

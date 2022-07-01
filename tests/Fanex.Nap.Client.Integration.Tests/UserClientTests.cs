@@ -46,35 +46,6 @@ namespace Fanex.Nap.Client.AspNetCore.Tests
             Assert.Equal("sa", user.Username);
         }
 
-        [Fact]
-        public async Task GetAll_Always_ReturnAllUsers()
-        {
-            // Arrange
-            var request = "/UserClient/GetAll";
-            var response = await _serverFixture.Client.GetAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            // Act
-            var users = CommonUtils.GetFromResponse<IEnumerable<User>>(response);
-
-            // Assert
-            Assert.True(users != null);
-        }
-
-        [Fact]
-        public async Task GetUserLevel_Always_ReturnUserLevel()
-        {
-            // Arrange
-            var request = "/UserClient/GetUserLevel?userId=8&&siteId=1";
-            var response = await _serverFixture.Client.GetAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            // Act
-            var userLevel = CommonUtils.GetFromResponse<int>(response);
-
-            // Assert
-            Assert.Equal(100, userLevel);
-        }
 
         [Fact]
         public async Task GetPermission_Always_ReturnPermission()
@@ -92,21 +63,6 @@ namespace Fanex.Nap.Client.AspNetCore.Tests
         }
 
         [Fact]
-        public async Task IsHavingPermission_Always_ReturnPermission()
-        {
-            // Arrange
-            var request = "/UserClient/IsHavingPermission?userId=8&&siteId=1&&functionKey=ManageUser&&policy=2";
-            var response = await _serverFixture.Client.GetAsync(request);
-            response.EnsureSuccessStatusCode();
-
-            // Act
-            var permission = CommonUtils.GetFromResponse<bool>(response);
-
-            // Assert
-            Assert.True(permission);
-        }
-
-        [Fact]
         public async Task GetPermissions_Always_ReturnPermissions()
         {
             // Arrange
@@ -118,7 +74,7 @@ namespace Fanex.Nap.Client.AspNetCore.Tests
             var permissions = CommonUtils.GetFromResponse<IEnumerable<FunctionPolicy>>(response);
 
             // Assert
-            Assert.Equal(3, permissions.Count());
+            Assert.Equal(1, permissions.Count());
         }
     }
 }

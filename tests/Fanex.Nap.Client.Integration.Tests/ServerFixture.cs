@@ -3,7 +3,7 @@
     using System;
     using System.IO;
     using System.Net.Http;
-    using Fanex.Nap.Client.AspNetCore.DemoSite;
+    using Fanex.NAP.Client.Demo.AspNetCore;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.Configuration;

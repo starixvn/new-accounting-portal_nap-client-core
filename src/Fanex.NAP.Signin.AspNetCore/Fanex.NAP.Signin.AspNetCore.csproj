@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageReleaseNotes>
+      - Fix missing Resources
+      - Add ByPassProxyLocal to configuration for avoiding slow connection in local network
+      - Upgrade latest package
+      - Redirect to login page in NapSuperAuth attribute</PackageReleaseNotes>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+ 
+  <ItemGroup>
+    <PackageReference Include="Fanex.Data" Version="4.2.2" />
+    <PackageReference Include="ONEbook.UM.AspNetCore" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fanex.NAP.Client.AspNetCore\Fanex.NAP.Client.AspNetCore.csproj" />
+  </ItemGroup>
+
+</Project>

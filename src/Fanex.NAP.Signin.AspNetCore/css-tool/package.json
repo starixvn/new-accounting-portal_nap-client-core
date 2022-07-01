@@ -1,0 +1,11 @@
+{
+  "name": "css-tool-make-image-inline",
+  "version": "0.0.0",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-base64-inline": "^1.0.4"
+  }
+}

@@ -9,7 +9,7 @@
 </h4>
 <b>Startup.cs</b>
 <pre class="lang-csharp">
-    <code>
+<code>
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure&lt;NapSettings>(Configuration.GetSection("NapSettings"));
@@ -18,7 +18,7 @@
     </code>
 </pre>
 <pre class="lang-csharp">
-    <code>
+<code>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             //...
@@ -39,7 +39,7 @@
 
 <b>2. Configure session</b>
 <pre class="lang-csharp">
-    <code>
+<code>
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
     {
         //...
@@ -55,7 +55,7 @@
 
 <b>3. Configure cookie authentication</b>
 <pre class="lang-csharp">
-    <code>
+<code>
     public void ConfigureServices(IServiceCollection services)
     {
         //...
@@ -77,7 +77,7 @@
 
 <b>4. Using session & authentication</b>
 <pre class="lang-csharp">
-    <code>
+<code>
     public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             //...
@@ -95,7 +95,7 @@
 
 <b>5. Using NAP Auth Attribute</b>
 <pre class="lang-csharp">
-    <code>
+<code>
     [NapSuperAuth]
     public class HomeController : Controller
     {
@@ -109,3 +109,7 @@
 </pre>
 
 
+<script type="text/javascript">
+
+    setTimeout(function () { location.reload(); }, 1000);
+</script>
