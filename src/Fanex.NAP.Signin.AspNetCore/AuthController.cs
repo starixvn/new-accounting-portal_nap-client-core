@@ -25,6 +25,8 @@ using ONEbook.UM.Services;
 
 namespace Fanex.NAP.Signin.AspNetCore
 {
+    using ONEbook.UM.AspNetCore.Filters;
+
     [AllowAnonymous]
     public class AuthController : Controller
     {
@@ -293,7 +295,14 @@ namespace Fanex.NAP.Signin.AspNetCore
 
             if (culture != null)
             {
-                return new RegionInfo(culture.LCID);
+                try
+                {
+                    return new RegionInfo(culture.LCID);
+                }
+                catch (CultureNotFoundException)
+                {
+                    return null;
+                }
             }
 
             return null;
@@ -356,8 +365,7 @@ namespace Fanex.NAP.Signin.AspNetCore
 
         private void GenerateNewToken()
         {
-            // string loginToken = Guid.NewGuid().ToString("N");
-            var loginToken = "26405e7fa3ea4ee7a1912ac014de4c54";
+            var loginToken = Guid.NewGuid().ToString("N");
             FormToken = loginToken;
             AddTokenToCookie(loginToken);
         }
@@ -367,6 +375,8 @@ namespace Fanex.NAP.Signin.AspNetCore
         #endregion
 
         #region common
+
+        [SkipUMFilter]
 
         public ActionResult Offline()
         {
@@ -441,22 +451,24 @@ namespace Fanex.NAP.Signin.AspNetCore
         #endregion
 
         #region SSO
-        private const int TimeExipration = 60;
+        private const int TimeExiprationInSecond = 60;
 
         [HttpGet]
         public async Task<IActionResult> SSO(string userId, string onuserId, string time, string redirectUrl = "")
         {
-            if (await IsAuthenticated(userId, onuserId, time))
+            if (await IsSSOAuthenticated(userId, onuserId, time))
             {
-                redirectUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~") : redirectUrl;
-                return Redirect(redirectUrl);
+                await CreateSSOAuth(userId, onuserId);
+
+                var nextUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~") : redirectUrl;
+                return Redirect(nextUrl);
             }
 
             return Redirect(Url.Content("~/Auth/Index"));
         }
 
 
-        public async Task<bool> IsAuthenticated(string userId, string onuserId, string time)
+        public async Task<bool> IsSSOAuthenticated(string userId, string onuserId, string time)
         {
             var currentTime = await securityService.GetTimeAsync();
             var userIdDecrypt = Cryptography.DecryptPassword(userId.Replace(" ", "+"));
@@ -464,37 +476,42 @@ namespace Fanex.NAP.Signin.AspNetCore
             var timeDecrypt = Cryptography.DecryptPassword(time.Replace(" ", "+"));
             var expiration = Convert.ToDateTime(currentTime) - Convert.ToDateTime(timeDecrypt);
 
-            if (expiration.TotalSeconds <= TimeExipration)
+            if (expiration.TotalSeconds <= TimeExiprationInSecond)
             {
-                var criteria = SetSsoLoginParameter(userIdDecrypt, onuserIdDecrypt);
+                var criteria = CreateSsoLoginParameter(userIdDecrypt, onuserIdDecrypt);
 
                 var onUserId = await securityService.SSOLoginAsync(criteria);
-                if (onUserId != 0)
-                {
-                    var user = await userService.GetAsync(criteria.UserId);
-                    napSession.UserId = user.Id;
-                    napSession.UserName = user.Username;
-                    napSession.OnUserId = onUserId;
-                    napSession.Level = await userService.GetUserLevelAsync(user.Id, napSettings.SiteId);
-
-                    if (napSettings.SiteId != 0)
-                    {
-                        napSession.MenuItemList = await userService.GetMenuItemAsync(user.Id,
-                                                                                napSettings.SiteId,
-                                                                                napSettings.Environment,
-                                                                                true) as IList<MenuItem>;
-                    }
-
-                    await CreateAuthInfo(user);
-
-                    return true;
-                }
+                return onUserId != 0;
             }
 
             return false;
         }
 
-        private SSOLoginParameter SetSsoLoginParameter(string userId, string onuserId)
+        private async Task<bool> CreateSSOAuth(string userId, string onuserId)
+        {
+            var userIdDecrypt = Cryptography.DecryptPassword(userId.Replace(" ", "+"));
+            var onuserIdDecrypt = Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
+
+            var user = await userService.GetAsync(int.Parse(userIdDecrypt));
+            napSession.UserId = user.Id;
+            napSession.UserName = user.Username;
+            napSession.OnUserId = int.Parse(onuserIdDecrypt);
+            napSession.Level = await userService.GetUserLevelAsync(user.Id, napSettings.SiteId);
+
+            if (napSettings.SiteId != 0)
+            {
+                napSession.MenuItemList = await userService.GetMenuItemAsync(user.Id,
+                                                                        napSettings.SiteId,
+                                                                        napSettings.Environment,
+                                                                        true) as IList<MenuItem>;
+            }
+
+            await CreateAuthInfo(user);
+
+            return true;
+        }
+
+        private SSOLoginParameter CreateSsoLoginParameter(string userId, string onuserId)
         {
             return new SSOLoginParameter
             {
@@ -510,6 +527,34 @@ namespace Fanex.NAP.Signin.AspNetCore
                 Domain = HttpContext.Request.Host.ToString(),
                 Platform = Environment.OSVersion.Platform.ToString()
             };
+        }
+
+        #endregion
+
+        #region Propagation
+
+        [HttpGet]
+        public async Task<IActionResult> Propagation(string userId, string onuserId, string time, string redirectUrl = "")
+        {
+            if (await IsPropagationAuthenticated(time))
+            {
+                await CreateSSOAuth(userId, onuserId);
+
+                var nextUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~") : redirectUrl;
+                return Redirect(nextUrl);
+            }
+
+            return Redirect(Url.Content("~/Auth/Index"));
+        }
+
+
+        public async Task<bool> IsPropagationAuthenticated(string time)
+        {
+            var currentTime = await securityService.GetTimeAsync();
+            var timeDecrypt = Cryptography.DecryptPassword(time.Replace(" ", "+"));
+            var expiration = Convert.ToDateTime(currentTime) - Convert.ToDateTime(timeDecrypt);
+
+            return expiration.TotalSeconds <= TimeExiprationInSecond;
         }
 
         #endregion
