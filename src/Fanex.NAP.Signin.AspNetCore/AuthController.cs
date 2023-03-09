@@ -196,7 +196,7 @@ namespace Fanex.NAP.Signin.AspNetCore
         {
             await DoSignOut();
 
-            redirectUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~/Auth") : redirectUrl;
+            redirectUrl = string.IsNullOrEmpty(redirectUrl) ? $"{SignInHelper.PathBase}Auth" : redirectUrl;
 
             return Redirect(redirectUrl);
         }
@@ -383,7 +383,7 @@ namespace Fanex.NAP.Signin.AspNetCore
             var isDownTime = maintenanceService.IsUnderMaintenance();
             if (!isDownTime)
             {
-                return Redirect(Url.Content("~/"));
+                return Redirect(SignInHelper.PathBase);
             }
 
             var downTime = maintenanceService.GetUnderMaintenanceTime();
@@ -410,10 +410,9 @@ namespace Fanex.NAP.Signin.AspNetCore
                 return Content(string.Empty, "text/javascript");
             }
 
-            var text = Helper.ReCheckInScript;
-            var rootUrl = Url.Content("~/");
-
-            return Content($"window.rootUrl='{rootUrl}';\r\n{text}", "text/javascript");
+            var text = SignInHelper.ReCheckInScript;
+            
+            return Content($"window.rootUrl='{SignInHelper.PathBase}';\r\n{text}", "text/javascript");
         }
 
         #endregion
@@ -429,7 +428,7 @@ namespace Fanex.NAP.Signin.AspNetCore
 
         [HttpPost]
         [Authorize]
-        public JsonResult ChangePassword(UpdatePasswordModel criteria)
+        public JsonResult ChangePassword([FromBody] UpdatePasswordModel criteria)
         {
             var user = userService.Get(napSession.UserId);
             var oldPwd = criteria.OldUserPwd;
@@ -456,15 +455,16 @@ namespace Fanex.NAP.Signin.AspNetCore
         [HttpGet]
         public async Task<IActionResult> SSO(string userId, string onuserId, string time, string redirectUrl = "")
         {
-            if (await IsSSOAuthenticated(userId, onuserId, time))
+            var logged = await IsSSOAuthenticated(userId, onuserId, time);
+            if (logged)
             {
                 await CreateSSOAuth(userId, onuserId);
 
-                var nextUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~") : redirectUrl;
+                var nextUrl = string.IsNullOrEmpty(redirectUrl) ? SignInHelper.PathBase : redirectUrl;
                 return Redirect(nextUrl);
             }
 
-            return Redirect(Url.Content("~/Auth/Index"));
+            return Redirect($"{SignInHelper.PathBase}Auth/Index");
         }
 
 
@@ -544,7 +544,7 @@ namespace Fanex.NAP.Signin.AspNetCore
                 return Redirect(nextUrl);
             }
 
-            return Redirect(Url.Content("~/Auth/Index"));
+            return Redirect($"{SignInHelper.PathBase}Auth/Index");
         }
 
 
@@ -583,7 +583,7 @@ namespace Fanex.NAP.Signin.AspNetCore
             var onUserId = await securityService.LoginAsync(criteria);
 
             await SaveUserSession(user, user.Username, onUserId);
-            return Redirect("~/");
+            return Redirect(SignInHelper.PathBase);
         }
 
         [HttpGet]

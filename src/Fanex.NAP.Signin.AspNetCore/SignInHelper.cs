@@ -1,6 +1,6 @@
 ﻿namespace Fanex.NAP.Core.SignIn
 {
-    public static class Helper
+    public static class SignInHelper
     {
         public const string ReCheckInScript = @"function ReCheckin() {
     var urlRecheckIn = window.rootUrl + 'Auth/ReCheckIn';
@@ -33,5 +33,7 @@
     xmlhttp.send();
 }
 setTimeout(ReCheckin, 60000);";
+
+        public static string PathBase { get; set; } = "/";
     }
 }
