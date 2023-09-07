@@ -1,32 +1,31 @@
-﻿namespace Fanex.Nap.Client.AspNetCore.Tests
+﻿namespace Fanex.Nap.Client.Integration.Tests;
+
+using System.Net.Http;
+using System.Threading.Tasks;
+using NAP.Client.Models;
+using Xunit;
+
+public class GroupClientTests : IClassFixture<ServerFixture>
 {
-    using System.Net.Http;
-    using System.Threading.Tasks;
-    using Fanex.NAP.Client.Models;
-    using Xunit;
+    private readonly HttpClient _client;
 
-    public class GroupClientTests : IClassFixture<ServerFixture>
+    public GroupClientTests(ServerFixture server)
     {
-        private readonly HttpClient _client;
+        _client = server.Client;
+    }
 
-        public GroupClientTests(ServerFixture server)
-        {
-            _client = server.Client;
-        }
+    [Fact]
+    public async Task GetById_Always_ReturnGroup()
+    {
+        // Arrange
+        const string request = "/GroupClient/Get?id=23";
+        var response = await _client.GetAsync(request);
+        response.EnsureSuccessStatusCode();
 
-        [Fact]
-        public async Task GetById_Always_ReturnGroup()
-        {
-            // Arrange
-            var request = "/GroupClient/Get?id=23";
-            var response = await _client.GetAsync(request);
-            response.EnsureSuccessStatusCode();
+        // Act
+        CommonUtils.GetFromResponse<Group>(response);
 
-            // Act
-            var group = CommonUtils.GetFromResponse<Group>(response);
-
-            // Assert
-            Assert.Equal("Administrator", "Administrator");
-        }
+        // Assert
+        Assert.Equal("Administrator", "Administrator");
     }
 }

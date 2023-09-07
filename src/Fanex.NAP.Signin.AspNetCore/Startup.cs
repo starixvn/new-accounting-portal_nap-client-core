@@ -1,9 +1,8 @@
-﻿namespace Fanex.NAP.Signin.AspNetCore
+﻿namespace Fanex.NAP.Signin.AspNetCore;
+
+public class Startup
 {
-    public class Startup
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-        }
     }
 }

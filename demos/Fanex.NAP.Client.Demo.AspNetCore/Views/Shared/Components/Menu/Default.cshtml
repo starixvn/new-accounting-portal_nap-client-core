@@ -1,7 +1,7 @@
-﻿@model MenuViewModel
+﻿@model Fanex.NAP.Client.Demo.AspNetCore.Models.MenuViewModel
 
 <ul class="nav navbar-nav">
-    @foreach (var item in Model.MemuItems)
+    @foreach (var item in Model.MenuItems)
     {
         <li>
             <a href=@Url.Content(item.ValidUrl)>@item.Name</a>

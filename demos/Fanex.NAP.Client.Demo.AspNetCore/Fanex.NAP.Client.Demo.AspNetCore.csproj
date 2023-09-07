@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,13 +36,16 @@
     <None Include="wwwroot\nap-auth\validationEngine.jquery.css" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Fanex.NAP.Client.AspNetCore\Fanex.NAP.Client.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\src\Fanex.NAP.Signin.AspNetCore\Fanex.NAP.Signin.AspNetCore.csproj" />
-  </ItemGroup>
+ 
   <ItemGroup>
     <PackageReference Include="ONEbook.UM.AspNetCore" Version="3.1.0" />
-    <PackageReference Include="ONEbook.UM.Transport" Version="3.1.1" />
+    <PackageReference Include="ONEbook.UM.Transport" Version="3.1.2" />
+  </ItemGroup>
+
+ 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fanex.NAP.Client\Fanex.NAP.Client.csproj" />
+    <ProjectReference Include="..\..\src\Fanex.NAP.Signin.AspNetCore\Fanex.NAP.Signin.AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>

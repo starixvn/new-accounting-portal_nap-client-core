@@ -1,8 +1,8 @@
-﻿namespace Fanex.NAP.Core.SignIn
+﻿namespace Fanex.NAP.Signin.AspNetCore;
+
+public static class SignInHelper
 {
-    public static class SignInHelper
-    {
-        public const string ReCheckInScript = @"function ReCheckin() {
+    public const string ReCheckInScript = @"function ReCheckin() {
     var urlRecheckIn = window.rootUrl + 'Auth/ReCheckIn';
     var urlLogout = window.rootUrl + 'Auth/LogOut';
     var urlOffline = window.rootUrl + 'Auth/Offline';
@@ -34,6 +34,5 @@
 }
 setTimeout(ReCheckin, 60000);";
 
-        public static string PathBase { get; set; } = "/";
-    }
+    public static string PathBase { get; set; } = "/";
 }

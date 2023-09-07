@@ -1,61 +1,59 @@
-﻿using Fanex.NAP.Client.AspNetCore.Session;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System;
 using System.Linq;
 
-namespace Fanex.NAP.Signin.AspNetCore.Attribute
+namespace Fanex.NAP.Signin.AspNetCore.Attribute;
+
+using Client.Session;
+
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
+public class SessionAuthorizeAttribute : AuthorizeAttribute, IAuthorizationFilter
 {
-    /// <summary>
-    /// Super authorize attribute.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
-    public class SessionAuthorizeAttribute : AuthorizeAttribute, IAuthorizationFilter
+    public void OnAuthorization(AuthorizationFilterContext filterContext)
     {
-        /// <summary>
-        /// Authorize action handler.
-        /// </summary>
-        /// <param name="filterContext">Filter context.</param>
-        public void OnAuthorization(AuthorizationFilterContext filterContext)
+        if (SkipAuthorization(filterContext))
         {
-            bool skipAuthorization = SkipAuthorization(filterContext);
-
-            if (skipAuthorization)
-            {
-                return;
-            }
-
-            if (SessionIsValid())
-            {
-                return;
-            }
-
-            RequestHelper.CloseConnection(filterContext);
+            return;
         }
 
-        private static bool SkipAuthorization(AuthorizationFilterContext filterContext)
+        if (!IsAuthenticated(filterContext))
         {
-            if (filterContext.ActionDescriptor.EndpointMetadata.Any(em => em.GetType() == typeof(AllowAnonymousAttribute)))
-            {
-                return true;
-            }
-
-            if (filterContext.ActionDescriptor is ControllerActionDescriptor controllerDescriptor
-                && controllerDescriptor.EndpointMetadata.Any(em => em.GetType() == typeof(AllowAnonymousAttribute)))
-            {
-                return true;
-            }
-
-            return false;
+            return;
         }
 
-        protected bool SessionIsValid()
+        if (SessionIsValid())
         {
-            var accessor = new HttpContextAccessor();
-            var session = new NapSession(accessor);
-            return !string.IsNullOrEmpty(session.UserName) && session.UserId > 0;
+            return;
         }
+
+        RequestHelper.CloseConnection(filterContext);
+    }
+
+    private static bool SkipAuthorization(AuthorizationFilterContext filterContext)
+    {
+        if (filterContext.ActionDescriptor.EndpointMetadata.Any(em => em.GetType() == typeof(AllowAnonymousAttribute)))
+        {
+            return true;
+        }
+
+        return filterContext.ActionDescriptor is ControllerActionDescriptor controllerDescriptor
+               && controllerDescriptor.EndpointMetadata.Any(em => em.GetType() == typeof(AllowAnonymousAttribute));
+    }
+
+    private static bool IsAuthenticated(AuthorizationFilterContext filterContext)
+    {
+        var identity = filterContext?.HttpContext.User.Identity;
+
+        return identity is { IsAuthenticated: true };
+    }
+
+    protected bool SessionIsValid()
+    {
+        var accessor = new HttpContextAccessor();
+        var session = new NapSession(accessor);
+        return !string.IsNullOrEmpty(session.UserName) && session.UserId > 0;
     }
 }

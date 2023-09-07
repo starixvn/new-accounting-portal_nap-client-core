@@ -1,11 +1,8 @@
-namespace Fanex.Nap.Client.AspNetCore.DemoSite.Models
+namespace Fanex.NAP.Client.Demo.AspNetCore.Models;
+
+public class ErrorViewModel
 {
-    using System;
+    public string RequestId { get; set; }
 
-    public class ErrorViewModel
-    {
-        public string RequestId { get; set; }
-
-        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-    }
+    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 }

@@ -1,12 +1,11 @@
-﻿namespace Fanex.Nap.Client.AspNetCore.DemoSite.Controllers
-{
-    using Microsoft.AspNetCore.Mvc;
+﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Controllers;
 
-    public class CommonController : Controller
+using Microsoft.AspNetCore.Mvc;
+
+public class CommonController : Controller
+{
+    public IActionResult Unauthorize()
     {
-        public IActionResult Unauthorize()
-        {
-            return View();
-        }
+        return View();
     }
 }
