@@ -13,6 +13,11 @@
     {
         public void OnAuthorization(AuthorizationFilterContext filterContext)
         {
+            if (IsOptionsMethod(filterContext))
+            {
+                return;
+            }
+
             if (SkipAuthorization(filterContext))
             {
                 return;
@@ -29,6 +34,11 @@
             }
 
             RequestHelper.CloseConnection(filterContext);
+        }
+
+        private static bool IsOptionsMethod(AuthorizationFilterContext filterContext)
+        {
+            return filterContext?.HttpContext?.Request?.Method == "OPTIONS";
         }
 
         private static bool SkipAuthorization(AuthorizationFilterContext filterContext)

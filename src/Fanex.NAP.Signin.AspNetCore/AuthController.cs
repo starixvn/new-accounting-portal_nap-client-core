@@ -524,6 +524,7 @@ public class AuthController : Controller
     #region Propagation
 
     [HttpGet]
+    [SkipUMFilter]
     public async Task<IActionResult> Propagation(string userId, string onuserId, string time, string redirectUrl = "")
     {
         if (!await IsPropagationAuthenticated(time))
@@ -627,6 +628,7 @@ public class AuthController : Controller
 
     #endregion
 
+    [SkipUMFilter]
     public ActionResult WhoAmI()
     {
         return Content($"Environment:{Environment.GetEnvironmentVariable("ASPNETCORE_APPL_PATH")}");
