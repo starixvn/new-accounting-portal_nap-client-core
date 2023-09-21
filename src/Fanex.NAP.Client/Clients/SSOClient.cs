@@ -1,0 +1,31 @@
+﻿namespace Fanex.NAP.Client.Clients
+{
+    using System.Threading.Tasks;
+    using Models.ParameterObject;
+
+    internal interface ISSOClient
+    {
+        Task<string> GetTime();
+
+        Task<int> Login(SSOLoginParameter parameter);
+    }
+
+    internal class SSOClient : BaseClient, ISSOClient
+    {
+        public async Task<string> GetTime()
+        {
+            return await Get<string>(CreateRequestUri(RelativePaths.GetTime));
+        }
+
+        public async Task<int> Login(SSOLoginParameter parameter)
+        {
+            return await Post<SSOLoginParameter, int>(CreateRequestUri(RelativePaths.Login), parameter);
+        }
+
+        private static class RelativePaths
+        {
+            public const string GetTime = "ssologin";
+            public const string Login = "ssologin";
+        }
+    }
+}

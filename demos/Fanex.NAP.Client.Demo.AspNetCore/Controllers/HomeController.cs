@@ -1,39 +1,38 @@
-﻿namespace Fanex.Nap.Client.AspNetCore.DemoSite.Controllers
+﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Controllers;
+
+using System.Diagnostics;
+using Attributes;
+using Helpers.Business;
+using Microsoft.AspNetCore.Mvc;
+using Models;
+
+[NapSuperAuth]
+public class HomeController : Controller
 {
-    using System.Diagnostics;
-    using Fanex.Nap.Client.AspNetCore.DemoSite.Models;
-    using Fanex.NAP.Client.AspNetCore.Attributes;
-    using Fanex.NAP.Core.Business;
-    using Microsoft.AspNetCore.Mvc;
-
-    [NapSuperAuth]
-    public class HomeController : Controller
+    [NapAuth(FunctionKey = "Dashboard", Policy = Constant.Policy.Read, PermissionCache = true)]
+    public IActionResult Index()
     {
-        [NapAuth(FunctionKey = "Dashboard", Policy = Constant.Policy.Read, PermissionCache = true)]
-        public IActionResult Index()
-        {
-            return View();
-        }
+        return View();
+    }
 
-        [NapAuth(FunctionKey = "Dashboard", Policy = Constant.Policy.Read)]
-        public IActionResult SourceCode()
-        {
-            ViewData["Message"] = "Your application description page.";
+    [NapAuth(FunctionKey = "Dashboard", Policy = Constant.Policy.Read)]
+    public IActionResult SourceCode()
+    {
+        ViewData["Message"] = "Your application description page.";
 
-            return View();
-        }
+        return View();
+    }
 
-        [NapAuth(FunctionKey = "Dashboard", Policy = Constant.Policy.Read)]
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
+    [NapAuth(FunctionKey = "Dashboard", Policy = Constant.Policy.Read)]
+    public IActionResult Contact()
+    {
+        ViewData["Message"] = "Your contact page.";
 
-            return View();
-        }
+        return View();
+    }
 
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+    public IActionResult Error()
+    {
+        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }

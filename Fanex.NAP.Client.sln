@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29215.179
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{18FD23D1-4AB1-4057-B60E-AF481F9D7167}"
 EndProject
@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0D5D758A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demos", "demos", "{E25616D8-52F1-44AF-B4E8-182AB6C34A55}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client.AspNetCore", "src\Fanex.NAP.Client.AspNetCore\Fanex.NAP.Client.AspNetCore.csproj", "{CF055DAD-C04A-4ED5-822B-6FF2C0B25202}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client", "src\Fanex.NAP.Client\Fanex.NAP.Client.csproj", "{CF055DAD-C04A-4ED5-822B-6FF2C0B25202}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Signin.AspNetCore", "src\Fanex.NAP.Signin.AspNetCore\Fanex.NAP.Signin.AspNetCore.csproj", "{92486801-9CC2-4550-9293-1955C2546A81}"
 EndProject

@@ -1,31 +1,30 @@
-﻿namespace Fanex.Nap.Client.AspNetCore.DemoSite.Controllers
+﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Controllers;
+
+using System.Collections.Generic;
+using System.Linq;
+using Client.Models;
+using Helpers.Web;
+using Microsoft.AspNetCore.Mvc;
+using Models;
+
+public class MenuViewComponent : ViewComponent
 {
-    using Fanex.Nap.Client.AspNetCore.DemoSite.Models;
-    using Fanex.NAP.Client.Helpers.Web;
-    using Fanex.NAP.Client.Models;
-    using Microsoft.AspNetCore.Mvc;
-    using System.Collections.Generic;
-    using System.Linq;
+    private readonly INapSession napSession;
 
-    public class MenuViewComponent : ViewComponent
+    public MenuViewComponent(INapSession napSession)
     {
-        private readonly INapSession napSession;
+        this.napSession = napSession;
+    }
 
-        public MenuViewComponent(INapSession napSession)
+    public IViewComponentResult Invoke()
+    {
+        var menuItems = napSession.MenuItemList?.OrderBy(item => item.DisplayOrder).ToList() ?? new List<MenuItem>();
+        var userName = napSession.UserName;
+
+        return View(new MenuViewModel
         {
-            this.napSession = napSession;
-        }
-
-        public IViewComponentResult Invoke()
-        {
-            var menuItems = napSession.MenuItemList?.OrderBy(item => item.DisplayOrder).ToList();
-            var userName = napSession.UserName;
-
-            return View(new MenuViewModel
-            {
-                MemuItems = menuItems ?? new List<MenuItem>(),
-                UserName = userName
-            });
-        }
+            MenuItems = menuItems,
+            UserName = userName
+        });
     }
 }

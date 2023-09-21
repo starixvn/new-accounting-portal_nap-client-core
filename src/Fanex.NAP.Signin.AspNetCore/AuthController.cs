@@ -6,13 +6,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Fanex.Data;
-using Fanex.NAP.Client.Configuration;
-using Fanex.NAP.Client.Helpers.Web;
-using Fanex.NAP.Client.Models;
-using Fanex.NAP.Client.Models.ParameterObject;
-using Fanex.NAP.Client.Services;
-using Fanex.NAP.Core.SignIn;
 using Fanex.NAP.Signin.AspNetCore.Models;
 using Fanex.NAP.Signin.AspNetCore.ViewModel;
 using Microsoft.AspNetCore.Authentication;
@@ -23,579 +16,621 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using ONEbook.UM.Services;
 
-namespace Fanex.NAP.Signin.AspNetCore
+namespace Fanex.NAP.Signin.AspNetCore;
+
+using Client.Configuration;
+using Client.Helpers.Web;
+using Client.Models;
+using Client.Models.ParameterObject;
+using Client.Services;
+using ONEbook.UM.AspNetCore.Filters;
+
+[AllowAnonymous]
+public class AuthController : Controller
 {
-    [AllowAnonymous]
-    public class AuthController : Controller
+    #region members
+
+    private const string FormTokenName = "__SecureFormToken";
+    private const string OtpSite = "NAP";
+
+    private readonly INapSession napSession;
+    private readonly ISecurityService securityService;
+    private readonly IGroupService groupService;
+    private readonly IUserService userService;
+    private readonly IMaintenanceService maintenanceService;
+    private readonly INapSettings napSettings;
+    private readonly IConfiguration configuration;
+
+    #endregion members
+
+    #region ctors
+
+    public AuthController(
+        INapSession napSession,
+        ISecurityService securityService,
+        IGroupService groupService,
+        IUserService userService,
+        IMaintenanceService maintenanceService,
+        INapSettings napSettings,
+        IConfiguration configuration)
     {
-        #region members
+        this.napSession = napSession;
+        this.securityService = securityService;
+        this.groupService = groupService;
+        this.userService = userService;
+        this.maintenanceService = maintenanceService;
+        this.napSettings = napSettings;
+        this.configuration = configuration;
+    }
 
-        private const string FormTokenName = "__SecureFormToken";
-        private const string OtpSite = "NAP";
+    #endregion ctors
 
-        private readonly INapSession napSession;
-        private readonly ISecurityService securityService;
-        private readonly IGroupService groupService;
-        private readonly IUserService userService;
-        private readonly IMaintenanceService maintenanceService;
-        private readonly INapSettings napSettings;
-        private readonly IConfiguration configuration;
+    #region sign in
 
-        #endregion members
-
-        #region ctors
-
-        public AuthController(
-            INapSession napSession,
-            ISecurityService securityService,
-            IGroupService groupService,
-            IUserService userService,
-            IMaintenanceService maintenanceService,
-            INapSettings napSettings,
-            IConfiguration configuration)
+    private string FormToken
+    {
+        get
         {
-            this.napSession = napSession;
-            this.securityService = securityService;
-            this.groupService = groupService;
-            this.userService = userService;
-            this.maintenanceService = maintenanceService;
-            this.napSettings = napSettings;
-            this.configuration = configuration;
+            var token = HttpContext.Session.GetString(FormTokenName);
+
+            return string.IsNullOrEmpty(token) ? string.Empty : token;
         }
 
-        #endregion ctors
+        set => HttpContext.Session.SetString(FormTokenName, value);
+    }
 
-        #region sign in
-
-        private string FormToken
+    [HttpGet]
+    public IActionResult Index()
+    {
+        if (!napSettings.EnableDirectLogin)
         {
-            get
-            {
-                var token = HttpContext.Session.GetString(FormTokenName);
-
-                return string.IsNullOrEmpty(token) ? string.Empty : token;
-            }
-
-            set
-            {
-                HttpContext.Session.SetString(FormTokenName, value);
-            }
+            return Redirect(napSettings.HubUrl);
         }
 
-        [HttpGet]
-        public IActionResult Index()
+        HttpContext.Session.SetInt32("OtpUserId", 0);
+        GenerateNewToken();
+        var indexViewModel = new IndexViewModel { FormToken = FormToken };
+        return View("Index", indexViewModel);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Index(string username, string password, string loginToken = "")
+    {
+        var indexViewModel = new IndexViewModel();
+
+        if (IsValidUserPassword(username, password, loginToken))
         {
-            if (!napSettings.EnableDirectLogin)
+            var user = await userService.GetAsync(username.Trim());
+
+            if (IsAuthorizedUser(user))
             {
-                return Redirect(napSettings.HubUrl);
-            }
-
-            HttpContext.Session.SetInt32("OtpUserId", 0);
-            GenerateNewToken();
-            var indexViewModel = new IndexViewModel { FormToken = FormToken };
-            return View("Index", indexViewModel);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Index(string username, string password, string loginToken = "")
-        {
-            var indexViewModel = new IndexViewModel();
-
-            if (IsValidUserPassword(username, password, loginToken))
-            {
-                var user = userService.Get(username.Trim());
-
-                if (IsAuthorizedUser(user))
+                if (IsActivatedUser(user))
                 {
-                    if (IsActivatedUser(user))
-                    {
-                        return await LoginFlow(user);
-                    }
-                    else
-                    {
-                        indexViewModel.Message = "Your account was suspended";
-                    }
+                    return await LoginFlow(user);
                 }
-                else
-                {
-                    indexViewModel.Message = "You have no authorization";
-                }
+
+                indexViewModel.Message = "Your account was suspended";
             }
             else
             {
-                indexViewModel.Message = "Invalid Username or Password";
+                indexViewModel.Message = "You have no authorization";
             }
-
-            GenerateNewToken();
-            indexViewModel.FormToken = FormToken;
-
-            return View("Index", indexViewModel);
+        }
+        else
+        {
+            indexViewModel.Message = "Invalid Username or Password";
         }
 
-        private bool IsValidUserPassword(string username, string password, string token)
+        GenerateNewToken();
+        indexViewModel.FormToken = FormToken;
+
+        return View("Index", indexViewModel);
+    }
+
+    private bool IsValidUserPassword(string username, string password, string token)
+    {
+        if (!IsValidToken(token)
+            || string.IsNullOrEmpty(username)
+            || string.IsNullOrEmpty(password))
         {
-            if (!IsValidToken(token)
-                || string.IsNullOrEmpty(username)
-                || string.IsNullOrEmpty(password))
-            {
-                return false;
-            }
-
-            var user = userService.Get(username.Trim());
-
-            if (user == null || user.Id == 0)
-            {
-                return false;
-            }
-
-            string hashPassword = SHA256(user.Password + token);
-            if (password != hashPassword)
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
+        var user = userService.Get(username.Trim());
 
-        private bool IsAuthorizedUser(User user)
+        if (user == null || user.Id == 0)
         {
-            var group = user.GroupId == 0 ? null : groupService.Get(user.GroupId);
-
-            var siteLevelList = userService.GetSiteLevel(user.Id, napSettings.Environment);
-
-            return (group == null || group.IsActive) &&
-                 siteLevelList.Any(x => x.IsActive);
+            return false;
         }
 
-        private bool IsActivatedUser(User user)
+        var hashPassword = ToSHA256(user.Password + token);
+        return password == hashPassword;
+    }
+
+
+    private bool IsAuthorizedUser(User user)
+    {
+        var group = user.GroupId == 0 ? null : groupService.Get(user.GroupId);
+
+        var siteLevelList = userService.GetSiteLevel(user.Id, napSettings.Environment);
+
+        return (group == null || group.IsActive) &&
+               siteLevelList.Any(x => x.IsActive);
+    }
+
+    private bool IsActivatedUser(User user)
+    {
+        var siteLevelList = userService.GetSiteLevel(user.Id, napSettings.Environment);
+
+        var userIsActiveOnThisSite = false;
+
+        foreach (var siteLevel in siteLevelList)
         {
-            var siteLevelList = userService.GetSiteLevel(user.Id, napSettings.Environment);
-
-            bool userIsActiveOnThisSite = false;
-
-            foreach (var siteLevel in siteLevelList)
+            if (siteLevel.SiteId == napSettings.SiteId && siteLevel.IsActive)
             {
-                if (siteLevel.SiteId == napSettings.SiteId && siteLevel.IsActive)
-                {
-                    userIsActiveOnThisSite = true;
-                }
+                userIsActiveOnThisSite = true;
             }
-
-            return userIsActiveOnThisSite;
         }
 
-        #endregion sign in
+        return userIsActiveOnThisSite;
+    }
 
-        #region sign out
+    #endregion sign in
 
-        [HttpGet]
-        public async Task<ActionResult> LogOut(string redirectUrl = "")
+    #region sign out
+
+    [HttpGet]
+    public async Task<ActionResult> LogOut(string redirectUrl = "")
+    {
+        await DoSignOut();
+
+        redirectUrl = string.IsNullOrEmpty(redirectUrl) ? $"{SignInHelper.PathBase}Auth" : redirectUrl;
+
+        return Redirect(redirectUrl);
+    }
+
+    #endregion sign out
+
+    #region re check in
+
+    public ActionResult ReCheckIn()
+    {
+        if (!napSettings.EnableReCheckIn)
         {
-            await DoSignOut();
-
-            redirectUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~/Auth") : redirectUrl;
-
-            return Redirect(redirectUrl);
-        }
-
-        #endregion sign out
-
-        #region re check in
-
-        public ActionResult ReCheckIn()
-        {
-            if (!napSettings.EnableReCheckIn)
-            {
-                return Json(new
-                {
-                    IsKickedOut = 0
-                });
-            }
-
-            var isKickedOut = napSession.OnUserId <= 0 || securityService.ReCheckIn(napSession.OnUserId, napSettings.SiteId) > 0 ? 1 : 0;
-
             return Json(new
             {
-                napSession.OnUserId,
-                IsKickedOut = isKickedOut
+                IsKickedOut = 0
             });
         }
 
-        #endregion re check in
+        var isKickedOut = napSession.OnUserId <= 0 || securityService.ReCheckIn(napSession.OnUserId, napSettings.SiteId) > 0 ? 1 : 0;
 
-        #region helpers
-
-        private async Task DoSignOut()
+        return Json(new
         {
-            if (napSession.OnUserId != 0)
-            {
-                await securityService.LogoutAsync(napSession.OnUserId);
-            }
+            napSession.OnUserId,
+            IsKickedOut = isKickedOut
+        });
+    }
 
-            napSession.ClearAll();
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).ConfigureAwait(false);
-            napSession.ClearAll();
+    #endregion re check in
+
+    #region helpers
+
+    private async Task DoSignOut()
+    {
+        if (napSession.OnUserId != 0)
+        {
+            await securityService.LogoutAsync(napSession.OnUserId);
         }
 
-        private void CreateUserMenu(User user)
-        {
-            napSession.MenuItemList = userService.GetMenuItem(
+        napSession.ClearAll();
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme).ConfigureAwait(false);
+        napSession.ClearAll();
+    }
+
+    private void CreateUserMenu(User user)
+    {
+        napSession.MenuItemList = userService.GetMenuItem(
                 user.Id,
                 napSettings.SiteId,
                 napSettings.Environment,
                 true)
-                .ToList();
+            .ToList();
+    }
+
+    private async Task CreateAuthInfo(User user)
+    {
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.Name, user.Username),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString())
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(new[] { identity }));
+    }
+
+    private LoginParameter SetUserCheckInCriteria(int userId)
+    {
+        return new LoginParameter
+        {
+            UserId = userId,
+            SiteId = napSettings.SiteId,
+            LoginDate = DateTime.Now,
+            NetSessionId = HttpContext.Session.Id,
+            Ip = GetClientIP(),
+            BrowserName = Request.Headers["User-Agent"].ToString(),
+            CountryCode = ResolveCountry(HttpContext.Request)?.GeoId.ToString(CultureInfo.CurrentCulture),
+            Domain = HttpContext.Request.Host.ToString(),
+            Platform = Environment.OSVersion.Platform.ToString()
+        };
+    }
+
+    private string GetClientIP()
+    {
+        var clientIP = HttpContext.Request.Headers["x-forwarded-for"].ToString();
+        if (string.IsNullOrWhiteSpace(clientIP))
+        {
+            clientIP = HttpContext.Connection.RemoteIpAddress?.ToString();
         }
 
-        private async Task CreateAuthInfo(User user)
+        return clientIP;
+    }
+
+    private static RegionInfo ResolveCountry(HttpRequest request)
+    {
+        var culture = ResolveCulture(request);
+
+        if (culture == null)
         {
-            var claims = new List<Claim>
-                        {
-                            new Claim(ClaimTypes.Name, user.Username),
-                            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-                        };
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(new[] { identity }));
-        }
-
-        private LoginParameter SetUserCheckInCriteria(int userId)
-        {
-            return new LoginParameter
-            {
-                UserId = userId,
-                SiteId = napSettings.SiteId,
-                LoginDate = DateTime.Now,
-                NetSessionId = HttpContext?.Session.Id,
-                Ip = GetClientIP(),
-                BrowserName = Request?.Headers["User-Agent"].ToString(),
-                CountryCode = ResolveCountry(HttpContext.Request)?.GeoId.ToString(CultureInfo.CurrentCulture),
-                Domain = HttpContext.Request.Host.ToString(),
-                Platform = Environment.OSVersion.Platform.ToString()
-            };
-        }
-
-        private string GetClientIP()
-        {
-            var clientIP = HttpContext.Request.Headers["x-forwarded-for"].ToString();
-            if (string.IsNullOrWhiteSpace(clientIP))
-            {
-                clientIP = HttpContext?.Connection.RemoteIpAddress?.ToString();
-            }
-
-            return clientIP;
-        }
-
-        private static RegionInfo ResolveCountry(HttpRequest request)
-        {
-            var culture = ResolveCulture(request);
-
-            if (culture != null)
-            {
-                return new RegionInfo(culture.LCID);
-            }
-
             return null;
         }
 
-        private static CultureInfo ResolveCulture(HttpRequest request)
+        try
         {
-            var userLangs = request.Headers["Accept-Language"].ToString();
-            var firstLang = userLangs.Split(',').FirstOrDefault();
-            var defaultLang = string.IsNullOrEmpty(firstLang) ? "en" : firstLang;
-            return CultureInfo.CreateSpecificCulture(defaultLang);
+            return new RegionInfo(culture.LCID);
+        }
+        catch (CultureNotFoundException)
+        {
+            return null;
+        }
+    }
+
+    private static CultureInfo ResolveCulture(HttpRequest request)
+    {
+        var userLanguages = request.Headers["Accept-Language"].ToString();
+        var firstLang = userLanguages.Split(',').FirstOrDefault();
+        var defaultLang = string.IsNullOrEmpty(firstLang) ? "en" : firstLang;
+        return CultureInfo.CreateSpecificCulture(defaultLang);
+    }
+
+    private async Task SaveUserSession(User user, string userName, int onUserId)
+    {
+        napSession.Level = await userService.GetUserLevelAsync(user.Id, napSettings.SiteId);
+        napSession.UserId = user.Id;
+        napSession.UserName = userName;
+        napSession.OnUserId = onUserId;
+
+        CreateUserMenu(user);
+        await CreateAuthInfo(user);
+    }
+
+
+    private static string ToSHA256(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            throw new ArgumentException("Hey guy! I do not want to hash an empty or white space string");
         }
 
-        private async Task SaveUserSession(User user, string userName, int onUserId)
-        {
-            napSession.Level = userService.GetUserLevel(user.Id, napSettings.SiteId);
-            napSession.UserId = user.Id;
-            napSession.UserName = userName;
-            napSession.OnUserId = onUserId;
+        using var hashAlgorithm = SHA256.Create();
+        var hashData = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
+        var encrypted = BitConverter.ToString(hashData).Replace("-", string.Empty).ToLower();
 
-            CreateUserMenu(user);
-            await CreateAuthInfo(user);
+        return encrypted;
+    }
+
+    #endregion helpers
+
+    #region Token
+
+    private void AddTokenToCookie(string loginToken)
+    {
+        HttpContext.Response.Cookies.Append(
+            FormTokenName,
+            loginToken,
+            new CookieOptions { Path = "/" }
+        );
+    }
+
+    private bool IsValidToken(string loginToken)
+    {
+        return !string.IsNullOrWhiteSpace(loginToken)
+               && FormToken == loginToken
+               && Request.Cookies[FormTokenName] != null
+               && loginToken == Request.Cookies[FormTokenName];
+    }
+
+    private void GenerateNewToken()
+    {
+        var loginToken = Guid.NewGuid().ToString("N");
+        FormToken = loginToken;
+        AddTokenToCookie(loginToken);
+    }
+
+
+
+    #endregion
+
+    #region common
+
+    [SkipUMFilter]
+
+    public ActionResult Offline()
+    {
+        var isDownTime = maintenanceService.IsUnderMaintenance();
+        if (!isDownTime)
+        {
+            return Redirect(SignInHelper.PathBase);
         }
 
+        var downTime = maintenanceService.GetUnderMaintenanceTime();
 
-        private string SHA256(string input)
+        var viewModel = new MaintenanceViewModel { UmtFrom = downTime.From, UmtTo = downTime.To };
+
+        return View("Offline", viewModel);
+    }
+
+    public ActionResult AccessDenied()
+    {
+        return View("AccessDenied");
+    }
+
+    public ActionResult Error()
+    {
+        return View("Error");
+    }
+
+    public ActionResult RecheckinScript()
+    {
+        if (!napSettings.EnableReCheckIn)
         {
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                throw new ArgumentException("Hey guy! I dont want to hash an empty or white space string");
-            }
-
-            var hashAlgorithm = new SHA256Managed();
-            var hashData = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
-            string encrypted = BitConverter.ToString(hashData).Replace("-", string.Empty).ToLower();
-
-            return encrypted;
+            return Content(string.Empty, "text/javascript");
         }
 
-        #endregion helpers
+        const string text = SignInHelper.ReCheckInScript;
+            
+        return Content($"window.rootUrl='{SignInHelper.PathBase}';\r\n{text}", "text/javascript");
+    }
 
-        #region Token
+    #endregion
 
-        private void AddTokenToCookie(string loginToken)
+    #region Password
+
+    [HttpGet]
+    [Authorize]
+    public ActionResult ChangePassword()
+    {
+        return View("ChangePassword", new UpdatePasswordModel());
+    }
+
+    [HttpPost]
+    [Authorize]
+    public JsonResult ChangePassword([FromBody] UpdatePasswordModel criteria)
+    {
+        var user = userService.Get(napSession.UserId);
+        var oldPwd = criteria.OldUserPwd;
+
+        if (oldPwd.Equals(user.Password))
         {
-            HttpContext.Response.Cookies.Append(
-                FormTokenName,
-                loginToken,
-                new CookieOptions { Path = "/" }
-            );
+            var password = criteria.UserPwd;
+            securityService.UpdatePassword(napSettings.SiteId, user.Id, password);
+        }
+        else
+        {
+            return Json(new { ErrorMsg = "Wrong password" });
         }
 
-        private bool IsValidToken(string loginToken)
+        return Json(new { ErrorMsg = "" });
+    }
+
+
+    #endregion
+
+    #region SSO
+    private const int TimeExpirationInSecond = 60;
+
+    [HttpGet]
+    public async Task<IActionResult> SSO(string userId, string onuserId, string time, string redirectUrl = "")
+    {
+        var logged = await IsSSOAuthenticated(userId, onuserId, time);
+        if (!logged)
         {
-            return !string.IsNullOrWhiteSpace(loginToken)
-                && FormToken == loginToken
-                && Request.Cookies[FormTokenName] != null
-                && loginToken == Request.Cookies[FormTokenName];
+            return Redirect($"{SignInHelper.PathBase}Auth/Index");
         }
 
-        private void GenerateNewToken()
+        await CreateSSOAuth(userId, onuserId);
+
+        var nextUrl = string.IsNullOrEmpty(redirectUrl) ? SignInHelper.PathBase : redirectUrl;
+        return Redirect(nextUrl);
+
+    }
+
+
+    public async Task<bool> IsSSOAuthenticated(string userId, string onuserId, string time)
+    {
+        var currentTime = await securityService.GetTimeAsync();
+        var userIdDecrypt = Cryptography.DecryptPassword(userId.Replace(" ", "+"));
+        var onuserIdDecrypt = Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
+        var timeDecrypt = Cryptography.DecryptPassword(time.Replace(" ", "+"));
+        var expiration = Convert.ToDateTime(currentTime) - Convert.ToDateTime(timeDecrypt);
+
+        if (!(expiration.TotalSeconds <= TimeExpirationInSecond))
         {
-            // string loginToken = Guid.NewGuid().ToString("N");
-            var loginToken = "26405e7fa3ea4ee7a1912ac014de4c54";
-            FormToken = loginToken;
-            AddTokenToCookie(loginToken);
-        }
-
-
-
-        #endregion
-
-        #region common
-
-        public ActionResult Offline()
-        {
-            var isDownTime = maintenanceService.IsUnderMaintenance();
-            if (!isDownTime)
-            {
-                return Redirect(Url.Content("~/"));
-            }
-
-            var downTime = maintenanceService.GetUnderMaintenanceTime();
-
-            var viewModel = new MaintenanceViewModel { UmtFrom = downTime.From, UmtTo = downTime.To };
-
-            return View("Offline", viewModel);
-        }
-
-        public ActionResult AccessDenied()
-        {
-            return View("AccessDenied");
-        }
-
-        public ActionResult Error()
-        {
-            return View("Error");
-        }
-
-        public ActionResult RecheckinScript()
-        {
-            if (!napSettings.EnableReCheckIn)
-            {
-                return Content(string.Empty, "text/javascript");
-            }
-
-            var text = Helper.ReCheckInScript;
-            var rootUrl = Url.Content("~/");
-
-            return Content($"window.rootUrl='{rootUrl}';\r\n{text}", "text/javascript");
-        }
-
-        #endregion
-
-        #region Password
-
-        [HttpGet]
-        [Authorize]
-        public ActionResult ChangePassword()
-        {
-            return View("ChangePassword", new UpdatePasswordModel());
-        }
-
-        [HttpPost]
-        [Authorize]
-        public JsonResult ChangePassword(UpdatePasswordModel criteria)
-        {
-            var user = userService.Get(napSession.UserId);
-            var oldPwd = criteria.OldUserPwd;
-
-            if (oldPwd.Equals(user.Password))
-            {
-                var password = criteria.UserPwd;
-                securityService.UpdatePassword(napSettings.SiteId, user.Id, password);
-            }
-            else
-            {
-                return Json(new { ErrorMsg = "Wrong password" });
-            }
-
-            return Json(new { ErrorMsg = "" });
-        }
-
-
-        #endregion
-
-        #region SSO
-        private const int TimeExipration = 60;
-
-        [HttpGet]
-        public async Task<IActionResult> SSO(string userId, string onuserId, string time, string redirectUrl = "")
-        {
-            if (await IsAuthenticated(userId, onuserId, time))
-            {
-                redirectUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~") : redirectUrl;
-                return Redirect(redirectUrl);
-            }
-
-            return Redirect(Url.Content("~/Auth/Index"));
-        }
-
-
-        public async Task<bool> IsAuthenticated(string userId, string onuserId, string time)
-        {
-            var currentTime = await securityService.GetTimeAsync();
-            var userIdDecrypt = Cryptography.DecryptPassword(userId.Replace(" ", "+"));
-            var onuserIdDecrypt = Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
-            var timeDecrypt = Cryptography.DecryptPassword(time.Replace(" ", "+"));
-            var expiration = Convert.ToDateTime(currentTime) - Convert.ToDateTime(timeDecrypt);
-
-            if (expiration.TotalSeconds <= TimeExipration)
-            {
-                var criteria = SetSsoLoginParameter(userIdDecrypt, onuserIdDecrypt);
-
-                var onUserId = await securityService.SSOLoginAsync(criteria);
-                if (onUserId != 0)
-                {
-                    var user = await userService.GetAsync(criteria.UserId);
-                    napSession.UserId = user.Id;
-                    napSession.UserName = user.Username;
-                    napSession.OnUserId = onUserId;
-                    napSession.Level = await userService.GetUserLevelAsync(user.Id, napSettings.SiteId);
-
-                    if (napSettings.SiteId != 0)
-                    {
-                        napSession.MenuItemList = await userService.GetMenuItemAsync(user.Id,
-                                                                                napSettings.SiteId,
-                                                                                napSettings.Environment,
-                                                                                true) as IList<MenuItem>;
-                    }
-
-                    await CreateAuthInfo(user);
-
-                    return true;
-                }
-            }
-
             return false;
         }
 
-        private SSOLoginParameter SetSsoLoginParameter(string userId, string onuserId)
+        var criteria = CreateSsoLoginParameter(userIdDecrypt, onuserIdDecrypt);
+
+        var onUserId = await securityService.SSOLoginAsync(criteria);
+        return onUserId != 0;
+
+    }
+
+    private async Task<bool> CreateSSOAuth(string userId, string onuserId)
+    {
+        var userIdDecrypt = Cryptography.DecryptPassword(userId.Replace(" ", "+"));
+        var onuserIdDecrypt = Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
+
+        var user = await userService.GetAsync(int.Parse(userIdDecrypt));
+        napSession.UserId = user.Id;
+        napSession.UserName = user.Username;
+        napSession.OnUserId = int.Parse(onuserIdDecrypt);
+        napSession.Level = await userService.GetUserLevelAsync(user.Id, napSettings.SiteId);
+
+        if (napSettings.SiteId != 0)
         {
-            return new SSOLoginParameter
-            {
-                UserId = Convert.ToInt32(userId),
-                SiteId = napSettings.SiteId,
-                CheckOnUserId = Convert.ToInt32(onuserId),
-                OnUserId = 0,
-                LoginDate = DateTime.Now,
-                NetSessionId = HttpContext?.Session.Id,
-                IP = GetClientIP(),
-                BrowserName = Request?.Headers["User-Agent"].ToString(),
-                CountryCode = ResolveCountry(HttpContext.Request)?.GeoId.ToString(CultureInfo.CurrentCulture),
-                Domain = HttpContext.Request.Host.ToString(),
-                Platform = Environment.OSVersion.Platform.ToString()
-            };
+            napSession.MenuItemList = await userService.GetMenuItemAsync(user.Id,
+                napSettings.SiteId,
+                napSettings.Environment,
+                true) as IList<MenuItem>;
         }
 
-        #endregion
+        await CreateAuthInfo(user);
 
-        #region LoginFlow
+        return true;
+    }
 
-        private async Task<ActionResult> LoginFlow(User user)
+    private SSOLoginParameter CreateSsoLoginParameter(string userId, string onuserId)
+    {
+        return new SSOLoginParameter
         {
-            var ignoredOtp = !napSettings.EnableOtp
-                || (await userService.IgnoredOtpAsync(user.Id, OtpSite));
+            UserId = Convert.ToInt32(userId),
+            SiteId = napSettings.SiteId,
+            CheckOnUserId = Convert.ToInt32(onuserId),
+            OnUserId = 0,
+            LoginDate = DateTime.Now,
+            NetSessionId = HttpContext.Session.Id,
+            IP = GetClientIP(),
+            BrowserName = Request.Headers["User-Agent"].ToString(),
+            CountryCode = ResolveCountry(HttpContext.Request)?.GeoId.ToString(CultureInfo.CurrentCulture),
+            Domain = HttpContext.Request.Host.ToString(),
+            Platform = Environment.OSVersion.Platform.ToString()
+        };
+    }
 
-            if (ignoredOtp)
-            {
-                return await DefaultLoginFlow(user);
-            }
-            else
-            {
-                HttpContext.Session.SetInt32("OtpUserId", user.Id);
-                return RedirectToAction("OtpLoginFlow");
-            }
+    #endregion
+
+    #region Propagation
+
+    [HttpGet]
+    [SkipUMFilter]
+    public async Task<IActionResult> Propagation(string userId, string onuserId, string time, string redirectUrl = "")
+    {
+        if (!await IsPropagationAuthenticated(time))
+        {
+            return Redirect($"{SignInHelper.PathBase}Auth/Index");
         }
 
-        private async Task<ActionResult> DefaultLoginFlow(User user)
-        {
-            var criteria = SetUserCheckInCriteria(user.Id);
-            var onUserId = await securityService.LoginAsync(criteria);
+        await CreateSSOAuth(userId, onuserId);
 
-            await SaveUserSession(user, user.Username, onUserId);
-            return Redirect("~/");
+        var nextUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~") : redirectUrl;
+        return Redirect(nextUrl);
+
+    }
+
+
+    public async Task<bool> IsPropagationAuthenticated(string time)
+    {
+        var currentTime = await securityService.GetTimeAsync();
+        var timeDecrypt = Cryptography.DecryptPassword(time.Replace(" ", "+"));
+        var expiration = Convert.ToDateTime(currentTime) - Convert.ToDateTime(timeDecrypt);
+
+        return expiration.TotalSeconds <= TimeExpirationInSecond;
+    }
+
+    #endregion
+
+    #region LoginFlow
+
+    private async Task<ActionResult> LoginFlow(User user)
+    {
+        var ignoredOtp = !napSettings.EnableOtp
+                         || await userService.IgnoredOtpAsync(user.Id, OtpSite);
+
+        if (ignoredOtp)
+        {
+            return await DefaultLoginFlow(user);
         }
 
-        [HttpGet]
-        public async Task<ActionResult> OtpLoginFlow()
+        HttpContext.Session.SetInt32("OtpUserId", user.Id);
+        return RedirectToAction("OtpLoginFlow");
+    }
+
+    private async Task<ActionResult> DefaultLoginFlow(User user)
+    {
+        var criteria = SetUserCheckInCriteria(user.Id);
+        var onUserId = await securityService.LoginAsync(criteria);
+
+        await SaveUserSession(user, user.Username, onUserId);
+        return Redirect(SignInHelper.PathBase);
+    }
+
+    [HttpGet]
+    public async Task<ActionResult> OtpLoginFlow()
+    {
+        var otpUserId = HttpContext.Session.GetInt32("OtpUserId");
+        var userId = otpUserId ?? 0;
+        if (userId == 0)
         {
-            var otpUserId = HttpContext.Session.GetInt32("OtpUserId");
-            var userId = otpUserId.HasValue ? otpUserId.Value : 0;
-            if (userId == 0)
-            {
-                return Redirect(configuration.GetSection("AuthSettings:LoginPath").Value);
-            }
-
-            var ignoredOtp = !napSettings.EnableOtp
-                || (await userService.IgnoredOtpAsync(userId, OtpSite));
-
-            if (ignoredOtp)
-            {
-                return RedirectToAction("Index");
-            }
-
-            return View();
+            return Redirect(configuration.GetSection("AuthSettings:LoginPath").Value);
         }
 
-        [HttpPost]
-        public async Task<ActionResult> OtpLoginFlow(string otp)
+        var ignoredOtp = !napSettings.EnableOtp
+                         || await userService.IgnoredOtpAsync(userId, OtpSite);
+
+        if (ignoredOtp)
         {
-            ViewBag.Message = string.Empty;
-            var otpUserId = HttpContext.Session.GetInt32("OtpUserId");
-            var userId = otpUserId.HasValue ? otpUserId.Value : 0;
-            var ignoredOtp = !napSettings.EnableOtp
-                || (await userService.IgnoredOtpAsync(userId, OtpSite));
-            if (userId == 0 || ignoredOtp)
-            {
-                HttpContext.Session.SetInt32("OtpUserId", 0);
-                return RedirectToAction("Index");
-            }
-
-            var validOtp = !string.IsNullOrEmpty(otp)
-                && (await userService.VerifyOtpAsync(userId, OtpSite, otp));
-
-            if (validOtp)
-            {
-                HttpContext.Session.SetInt32("OtpUserId", 0);
-                var user = userService.Get(userId);
-                return await DefaultLoginFlow(user);
-            }
-
-            ViewBag.Message = "Invalid OTP. Please try again";
-
-            return View();
+            return RedirectToAction("Index");
         }
 
-        #endregion
+        return View();
+    }
 
-        public ActionResult WhoAmI()
+    [HttpPost]
+    public async Task<ActionResult> OtpLoginFlow(string otp)
+    {
+        ViewBag.Message = string.Empty;
+        var otpUserId = HttpContext.Session.GetInt32("OtpUserId");
+        var userId = otpUserId ?? 0;
+        var ignoredOtp = !napSettings.EnableOtp
+                         || await userService.IgnoredOtpAsync(userId, OtpSite);
+        if (userId == 0 || ignoredOtp)
         {
-            return Content($"Environment:{Environment.GetEnvironmentVariable("ASPNETCORE_APPL_PATH")}");
+            HttpContext.Session.SetInt32("OtpUserId", 0);
+            return RedirectToAction("Index");
         }
+
+        var validOtp = !string.IsNullOrEmpty(otp)
+                       && await userService.VerifyOtpAsync(userId, OtpSite, otp);
+
+        if (validOtp)
+        {
+            HttpContext.Session.SetInt32("OtpUserId", 0);
+            var user = await userService.GetAsync(userId);
+            return await DefaultLoginFlow(user);
+        }
+
+        ViewBag.Message = "Invalid OTP. Please try again";
+
+        return View();
+    }
+
+    #endregion
+
+    [SkipUMFilter]
+    public ActionResult WhoAmI()
+    {
+        return Content($"Environment:{Environment.GetEnvironmentVariable("ASPNETCORE_APPL_PATH")}");
     }
 }

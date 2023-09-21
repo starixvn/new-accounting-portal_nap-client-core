@@ -1,26 +1,25 @@
-﻿namespace Fanex.Nap.Client.AspNetCore.Controllers
+﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Controllers;
+
+using System.Collections.Generic;
+using Client.Models;
+using Client.Models.ValueObject;
+using Microsoft.AspNetCore.Mvc;
+using Services;
+
+public class UserClientController : Controller
 {
-    using System.Collections.Generic;
-    using Fanex.NAP.Client.Models;
-    using Fanex.NAP.Client.Models.ValueObject;
-    using Fanex.NAP.Client.Services;
-    using Microsoft.AspNetCore.Mvc;
+    private readonly UserService _userService;
 
-    public class UserClientController : Controller
+    public UserClientController()
     {
-        private readonly UserService _userService;
-
-        public UserClientController()
-        {
-            _userService = new UserService();
-        }
-
-        public User GetById(int id) => _userService.Get(id);
-
-        public User GetByName(string name) => _userService.Get(name);
-
-        public int GetPermission(int userId, int siteId, string functionKey) => _userService.GetPermission(userId, siteId, functionKey);
-
-        public IEnumerable<FunctionPolicy> GetPermissions(int userId, int siteId, string functionKey) => _userService.GetPermissions(userId, siteId, functionKey);
+        _userService = new UserService();
     }
+
+    public User GetById(int id) => _userService.Get(id);
+
+    public User GetByName(string name) => _userService.Get(name);
+
+    public int GetPermission(int userId, int siteId, string functionKey) => _userService.GetPermission(userId, siteId, functionKey);
+
+    public IEnumerable<FunctionPolicy> GetPermissions(int userId, int siteId, string functionKey) => _userService.GetPermissions(userId, siteId, functionKey);
 }

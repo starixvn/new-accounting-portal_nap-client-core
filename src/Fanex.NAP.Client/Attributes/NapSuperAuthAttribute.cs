@@ -1,0 +1,69 @@
+﻿namespace Fanex.NAP.Client.Attributes
+{
+    using System;
+    using System.Linq;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Mvc.Controllers;
+    using Microsoft.AspNetCore.Mvc.Filters;
+    using Session;
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class NapSuperAuthAttribute : AuthorizeAttribute, IAuthorizationFilter
+    {
+        public void OnAuthorization(AuthorizationFilterContext filterContext)
+        {
+            if (IsOptionsMethod(filterContext))
+            {
+                return;
+            }
+
+            if (SkipAuthorization(filterContext))
+            {
+                return;
+            }
+
+            if (!IsAuthenticated(filterContext))
+            {
+                return;
+            }
+
+            if (SessionIsValid())
+            {
+                return;
+            }
+
+            RequestHelper.CloseConnection(filterContext);
+        }
+
+        private static bool IsOptionsMethod(AuthorizationFilterContext filterContext)
+        {
+            return filterContext?.HttpContext?.Request?.Method == "OPTIONS";
+        }
+
+        private static bool SkipAuthorization(AuthorizationFilterContext filterContext)
+        {
+            if (filterContext.ActionDescriptor.EndpointMetadata.Any(em => em.GetType() == typeof(AllowAnonymousAttribute)))
+            {
+                return true;
+            }
+
+            return filterContext.ActionDescriptor is ControllerActionDescriptor controllerDescriptor
+                   && controllerDescriptor.EndpointMetadata.Any(em => em.GetType() == typeof(AllowAnonymousAttribute));
+        }
+
+        private static bool IsAuthenticated(AuthorizationFilterContext filterContext)
+        {
+            var identity = filterContext?.HttpContext?.User?.Identity;
+
+            return identity != null && identity.IsAuthenticated;
+        }
+
+        protected bool SessionIsValid()
+        {
+            var accessor = new HttpContextAccessor();
+            var session = new NapSession(accessor);
+            return !string.IsNullOrEmpty(session.UserName) && session.UserId > 0;
+        }
+    }
+}

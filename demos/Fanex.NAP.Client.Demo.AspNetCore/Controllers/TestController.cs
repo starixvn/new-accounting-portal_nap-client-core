@@ -1,33 +1,32 @@
-﻿namespace Fanex.Nap.Client.AspNetCore.DemoSite.Controllers
-{
+﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Controllers;
+
+using System;
 using System.Security.Cryptography;
 using System.Text;
-using System;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-    [AllowAnonymous]
-    public class TestController : Controller
+[AllowAnonymous]
+public class TestController : Controller
+{
+    public IActionResult Index()
     {
-        public IActionResult Index()
-        {
-            var content = SHA256("1234567890");
+        var content = ToSHA256("1234567890");
 
-            return Content(content);
+        return Content(content);
+    }
+
+    private static string ToSHA256(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            throw new ArgumentException("Hey guy! I do not want to hash an empty or white space string");
         }
 
-        private string SHA256(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                throw new ArgumentException("Hey guy! I dont want to hash an empty or white space string");
-            }
+        using var hashAlgorithm = SHA256.Create();
+        var hashData = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
+        var encrypted = BitConverter.ToString(hashData).Replace("-", string.Empty).ToLower();
 
-            var hashAlgorithm = new SHA256Managed();
-            var hashData = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
-            string encrypted = BitConverter.ToString(hashData).Replace("-", string.Empty).ToLower();
-
-            return encrypted;
-        }
+        return encrypted;
     }
 }

@@ -1,12 +1,11 @@
-﻿namespace Fanex.Nap.Client.AspNetCore.DemoSite.Models
+﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Models;
+
+using System.Collections.Generic;
+using Client.Models;
+
+public class MenuViewModel
 {
-    using System.Collections.Generic;
-    using Fanex.NAP.Client.Models;
+    public IList<MenuItem> MenuItems { get; set; }
 
-    public class MenuViewModel
-    {
-        public IEnumerable<MenuItem> MemuItems { get; set; }
-
-        public string UserName { get; set; }
-    }
+    public string UserName { get; set; }
 }
