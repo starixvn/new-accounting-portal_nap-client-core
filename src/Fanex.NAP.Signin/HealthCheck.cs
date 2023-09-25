@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿namespace Fanex.NAP.SignIn;
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ONEbook.UM.AspNetCore.Filters;
-
-namespace Fanex.NAP.Signin.AspNetCore;
 
 [AllowAnonymous]
 public class HealthCheck : Controller

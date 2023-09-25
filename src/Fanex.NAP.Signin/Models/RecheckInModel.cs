@@ -1,4 +1,4 @@
-﻿namespace Fanex.NAP.Signin.AspNetCore.Models;
+﻿namespace Fanex.NAP.SignIn.Models;
 
 public class RecheckInModel
 {

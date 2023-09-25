@@ -1,4 +1,4 @@
-﻿namespace Fanex.NAP.Signin.AspNetCore;
+﻿namespace Fanex.NAP.SignIn;
 
 using System;
 using Microsoft.AspNetCore.Authorization;

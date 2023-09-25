@@ -1,13 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿namespace Fanex.NAP.SignIn.Attribute;
+
+using System;
+using System.Linq;
+using Fanex.NAP.Client.Session;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Linq;
-
-namespace Fanex.NAP.Signin.AspNetCore.Attribute;
-
-using Client.Session;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
 public class SessionAuthorizeAttribute : AuthorizeAttribute, IAuthorizationFilter

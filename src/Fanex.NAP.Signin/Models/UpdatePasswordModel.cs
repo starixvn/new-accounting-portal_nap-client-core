@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace Fanex.NAP.SignIn.Models;
 
-namespace Fanex.NAP.Signin.AspNetCore.Models;
+using System.ComponentModel.DataAnnotations;
 
 public class UpdatePasswordModel
 {
