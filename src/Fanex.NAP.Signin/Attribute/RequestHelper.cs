@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿namespace Fanex.NAP.SignIn.Attribute;
+
+using System;
+using System.Net;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Net;
-
-namespace Fanex.NAP.Signin.AspNetCore.Attribute;
 
 internal static class RequestHelper
 {

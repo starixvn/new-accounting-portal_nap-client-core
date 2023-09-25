@@ -1,4 +1,4 @@
-﻿namespace Fanex.NAP.Signin.AspNetCore.ViewModel;
+﻿namespace Fanex.NAP.SignIn.ViewModel;
 
 public class IndexViewModel
 {

@@ -1,8 +1,8 @@
-﻿using System.IO;
-using System.Security.Cryptography;
-using System;
+﻿namespace Fanex.NAP.SignIn;
 
-namespace Fanex.NAP.Signin.AspNetCore;
+using System;
+using System.IO;
+using System.Security.Cryptography;
 
 public static class Cryptography
 {
