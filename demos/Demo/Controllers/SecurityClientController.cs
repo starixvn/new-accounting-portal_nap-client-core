@@ -1,18 +1,13 @@
-﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Controllers;
+﻿namespace Demo.Controllers;
 
 using System;
-using Client.Models.ParameterObject;
+using Fanex.NAP.Client.Models.ParameterObject;
+using Fanex.NAP.Client.Services;
 using Microsoft.AspNetCore.Mvc;
-using Services;
 
 public class SecurityClientController : Controller
 {
-    private readonly SecurityService securityService;
-
-    public SecurityClientController()
-    {
-        securityService = new SecurityService();
-    }
+    private readonly SecurityService securityService = new();
 
     public int Login(int userId, int siteId)
     {

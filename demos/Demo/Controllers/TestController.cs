@@ -1,4 +1,4 @@
-﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Controllers;
+﻿namespace Demo.Controllers;
 
 using System;
 using System.Security.Cryptography;

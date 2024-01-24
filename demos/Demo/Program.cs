@@ -1,7 +1,7 @@
+namespace Demo;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-
-namespace Fanex.NAP.Client.Demo.AspNetCore;
 
 public class Program
 {

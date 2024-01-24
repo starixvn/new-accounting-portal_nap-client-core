@@ -1,8 +1,8 @@
-﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Controllers;
+﻿namespace Demo.Controllers;
 
 using System.Diagnostics;
-using Attributes;
-using Helpers.Business;
+using Fanex.NAP.Client.Attributes;
+using Fanex.NAP.Client.Helpers.Business;
 using Microsoft.AspNetCore.Mvc;
 using Models;
 

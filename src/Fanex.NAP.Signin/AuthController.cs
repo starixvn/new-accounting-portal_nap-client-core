@@ -357,8 +357,6 @@ public class AuthController : Controller
         AddTokenToCookie(loginToken);
     }
 
-
-
     #endregion
 
     #region common
@@ -433,7 +431,6 @@ public class AuthController : Controller
         return Json(new { ErrorMsg = "" });
     }
 
-
     #endregion
 
     #region SSO
@@ -442,49 +439,41 @@ public class AuthController : Controller
     [HttpGet]
     public async Task<IActionResult> SSO(string userId, string onuserId, string time, string redirectUrl = "")
     {
-        var logged = await IsSSOAuthenticated(userId, onuserId, time);
+        var logged = await IsSSOAuthenticated(time);
         if (!logged)
         {
             return Redirect($"{SignInHelper.PathBase}Auth/Index");
         }
 
-        await CreateSSOAuth(userId, onuserId);
+        var userIdDecrypt = Cryptography.DecryptPassword(userId.Replace(" ", "+"));
+        var onuserIdDecrypt = Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
+
+        var criteria = CreateSsoLoginParameter(userIdDecrypt, onuserIdDecrypt);
+        var ssoLoginOnUserId = await securityService.SSOLoginAsync(criteria);
+        
+        await CreateSSOAuth(userId, ssoLoginOnUserId);
 
         var nextUrl = string.IsNullOrEmpty(redirectUrl) ? SignInHelper.PathBase : redirectUrl;
         return Redirect(nextUrl);
-
     }
 
-
-    public async Task<bool> IsSSOAuthenticated(string userId, string onuserId, string time)
+    public async Task<bool> IsSSOAuthenticated(string time)
     {
         var currentTime = await securityService.GetTimeAsync();
-        var userIdDecrypt = Cryptography.DecryptPassword(userId.Replace(" ", "+"));
-        var onuserIdDecrypt = Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
         var timeDecrypt = Cryptography.DecryptPassword(time.Replace(" ", "+"));
         var expiration = Convert.ToDateTime(currentTime) - Convert.ToDateTime(timeDecrypt);
 
-        if (!(expiration.TotalSeconds <= TimeExpirationInSecond))
-        {
-            return false;
-        }
-
-        var criteria = CreateSsoLoginParameter(userIdDecrypt, onuserIdDecrypt);
-
-        var onUserId = await securityService.SSOLoginAsync(criteria);
-        return onUserId != 0;
-
+        return expiration.TotalSeconds < TimeExpirationInSecond;
     }
 
-    private async Task<bool> CreateSSOAuth(string userId, string onuserId)
+    private async Task<bool> CreateSSOAuth(string userId, int onUserId)
     {
         var userIdDecrypt = Cryptography.DecryptPassword(userId.Replace(" ", "+"));
-        var onuserIdDecrypt = Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
-
+        
         var user = await userService.GetAsync(int.Parse(userIdDecrypt));
         napSession.UserId = user.Id;
         napSession.UserName = user.Username;
-        napSession.OnUserId = int.Parse(onuserIdDecrypt);
+        napSession.OnUserId = onUserId;
         napSession.Level = await userService.GetUserLevelAsync(user.Id, napSettings.SiteId);
 
         if (napSettings.SiteId != 0)
@@ -526,26 +515,7 @@ public class AuthController : Controller
     [SkipUMFilter]
     public async Task<IActionResult> Propagation(string userId, string onuserId, string time, string redirectUrl = "")
     {
-        if (!await IsPropagationAuthenticated(time))
-        {
-            return Redirect($"{SignInHelper.PathBase}Auth/Index");
-        }
-
-        await CreateSSOAuth(userId, onuserId);
-
-        var nextUrl = string.IsNullOrEmpty(redirectUrl) ? Url.Content("~") : redirectUrl;
-        return Redirect(nextUrl);
-
-    }
-
-
-    public async Task<bool> IsPropagationAuthenticated(string time)
-    {
-        var currentTime = await securityService.GetTimeAsync();
-        var timeDecrypt = Cryptography.DecryptPassword(time.Replace(" ", "+"));
-        var expiration = Convert.ToDateTime(currentTime) - Convert.ToDateTime(timeDecrypt);
-
-        return expiration.TotalSeconds <= TimeExpirationInSecond;
+        return await SSO(userId, onuserId, time, redirectUrl);
     }
 
     #endregion
@@ -627,7 +597,6 @@ public class AuthController : Controller
 
     #endregion
 
-    [SkipUMFilter]
     public ActionResult WhoAmI()
     {
         return Content($"Environment:{Environment.GetEnvironmentVariable("ASPNETCORE_APPL_PATH")}");

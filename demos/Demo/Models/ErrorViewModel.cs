@@ -1,4 +1,4 @@
-namespace Fanex.NAP.Client.Demo.AspNetCore.Models;
+namespace Demo.Models;
 
 public class ErrorViewModel
 {

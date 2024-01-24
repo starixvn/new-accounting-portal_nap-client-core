@@ -1,19 +1,14 @@
-﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Controllers;
+﻿namespace Demo.Controllers;
 
 using System.Collections.Generic;
-using Client.Models;
-using Client.Models.ValueObject;
+using Fanex.NAP.Client.Models;
+using Fanex.NAP.Client.Models.ValueObject;
+using Fanex.NAP.Client.Services;
 using Microsoft.AspNetCore.Mvc;
-using Services;
 
 public class UserClientController : Controller
 {
-    private readonly UserService _userService;
-
-    public UserClientController()
-    {
-        _userService = new UserService();
-    }
+    private readonly UserService _userService = new();
 
     public User GetById(int id) => _userService.Get(id);
 

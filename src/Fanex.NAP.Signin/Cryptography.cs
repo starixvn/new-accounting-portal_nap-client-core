@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 public static class Cryptography
 {
 #pragma warning disable S2278 // Neither DES (Data Encryption Standard) nor DESede (3DES) should be used
-    private static readonly DESCryptoServiceProvider CryptoServiceProvider = new DESCryptoServiceProvider();
+    private static readonly DESCryptoServiceProvider CryptoServiceProvider = new();
 #pragma warning restore S2278 // Neither DES (Data Encryption 
     private static readonly byte[] RgbKey = { 0x21, 0x63, 0x54, 0x5a, 0x91, 0xac, 110, 0xcc };
     private static readonly byte[] RgbIv = "&％#@?,:*!~^."u8.ToArray();

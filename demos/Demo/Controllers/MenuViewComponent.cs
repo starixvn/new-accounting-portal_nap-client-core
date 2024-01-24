@@ -1,9 +1,9 @@
-﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Controllers;
+﻿namespace Demo.Controllers;
 
 using System.Collections.Generic;
 using System.Linq;
-using Client.Models;
-using Helpers.Web;
+using Fanex.NAP.Client.Helpers.Web;
+using Fanex.NAP.Client.Models;
 using Microsoft.AspNetCore.Mvc;
 using Models;
 

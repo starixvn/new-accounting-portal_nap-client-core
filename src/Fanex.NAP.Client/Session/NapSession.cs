@@ -53,7 +53,7 @@
 
         public IList<MenuItem> MenuItemList
         {
-            get => accessor.HttpContext.Session.Get<List<MenuItem>>(InternalMenuItemList);
+            get => accessor.HttpContext.Session.Get<List<MenuItem>>(InternalMenuItemList) ?? new List<MenuItem>();
             set => accessor.HttpContext.Session.Set(InternalMenuItemList, value);
         }
 
