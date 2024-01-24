@@ -1,7 +1,7 @@
-﻿namespace Fanex.NAP.Client.Demo.AspNetCore.Models;
+﻿namespace Demo.Models;
 
 using System.Collections.Generic;
-using Client.Models;
+using Fanex.NAP.Client.Models;
 
 public class MenuViewModel
 {

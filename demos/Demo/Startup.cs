@@ -1,5 +1,12 @@
+namespace Demo;
+
 using System;
 using System.Threading.Tasks;
+using Fanex.NAP.Client;
+using Fanex.NAP.Client.Configuration;
+using Fanex.NAP.Client.Helpers.Web;
+using Fanex.NAP.Client.Services;
+using Fanex.NAP.Client.Session;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,13 +19,6 @@ using ONEbook.UM.Configurations;
 using ONEbook.UM.Helpers;
 using ONEbook.UM.Services;
 using ONEbook.UM.Transport;
-
-namespace Fanex.NAP.Client.Demo.AspNetCore;
-
-using Configuration;
-using Helpers.Web;
-using Services;
-using Session;
 
 public class Startup
 {

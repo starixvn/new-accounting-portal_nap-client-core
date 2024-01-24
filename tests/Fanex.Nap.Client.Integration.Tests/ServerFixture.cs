@@ -3,7 +3,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
-using Fanex.NAP.Client.Demo.AspNetCore;
+using Demo;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -16,7 +16,7 @@ public class ServerFixture
             new WebHostBuilder()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseConfiguration(new ConfigurationBuilder()
-                    .SetBasePath(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\..\\")))
+                    .SetBasePath(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\")))
                     .AddJsonFile("appsettings.json")
                     .Build()
                 )

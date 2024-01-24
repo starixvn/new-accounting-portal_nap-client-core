@@ -4,18 +4,14 @@
     <TargetFramework>net7.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <PackageReleaseNotes>
-      - Fix missing Resources
-      - Add ByPassProxyLocal to configuration for avoiding slow connection in local network
-      - Upgrade latest package
-      - Redirect to login page in NapSuperAuth attribute</PackageReleaseNotes>
+      - Only support net 7+
+    </PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0' Or '$(TargetFramework)' == 'net7.0'">
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
-  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="ONEbook.UM.AspNetCore" Version="3.1.1.1" />
     <PackageReference Include="ONEbook.UM.AspNetCore.Filters" Version="3.1.1.1" />
@@ -25,8 +21,5 @@
     <ProjectReference Include="..\Fanex.NAP.Client\Fanex.NAP.Client.csproj" />
   </ItemGroup>
  
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
 
 </Project>

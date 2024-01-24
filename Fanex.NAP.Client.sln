@@ -11,9 +11,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demos", "demos", "{E25616D8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client", "src\Fanex.NAP.Client\Fanex.NAP.Client.csproj", "{CF055DAD-C04A-4ED5-822B-6FF2C0B25202}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Signin", "src\Fanex.NAP.Signin\Fanex.NAP.Signin.csproj", "{92486801-9CC2-4550-9293-1955C2546A81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.SignIn", "src\Fanex.NAP.SignIn\Fanex.NAP.SignIn.csproj", "{92486801-9CC2-4550-9293-1955C2546A81}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client.Demo.AspNetCore", "demos\Fanex.NAP.Client.Demo.AspNetCore\Fanex.NAP.Client.Demo.AspNetCore.csproj", "{9BB18CA8-A3D7-40C3-B542-15A9B6EE4854}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client.Demo", "demos\Demo\Demo.csproj", "{9BB18CA8-A3D7-40C3-B542-15A9B6EE4854}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.Nap.Client.Integration.Tests", "tests\Fanex.Nap.Client.Integration.Tests\Fanex.Nap.Client.Integration.Tests.csproj", "{177DD07C-B8BE-4EE2-A45D-AE130C9744A5}"
 EndProject
