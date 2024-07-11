@@ -16,6 +16,8 @@
 
         Task<User> Get(string username);
 
+        Task<IEnumerable<User>> GetBySite(int siteId, bool? isActive);
+
         Task<int> GetUserLevel(int userId, int siteId);
 
         Task<int> GetPermission(int userId, int siteId, string functionKey);
@@ -52,6 +54,15 @@
             return await Get<User>(CreateRequestUri(RelativePaths.GetByUsername, new { username }));
         }
 
+        public async Task<IEnumerable<User>> GetBySite(int siteId, bool? isActive)
+        {
+            return await Get<IEnumerable<User>>(CreateRequestUri(RelativePaths.GetBySite, new
+            {
+                siteId,
+                isActive
+            }));
+        }
+
         public async Task<int> GetUserLevel(int userId, int siteId)
         {
             return await Get<int>(CreateRequestUri(string.Format(RelativePaths.GetUserLevel, userId, siteId)));
@@ -83,6 +94,7 @@
         {
             public const string GetById = "user/{0}";
             public const string GetByUsername = "user";
+            public const string GetBySite = "user/bysite";
             public const string GetPermission = "user/{0}/permission";
             public const string GetPermissions = "user/{0}/permissions";
             public const string GetMenuItem = "user/{0}/menuItem";

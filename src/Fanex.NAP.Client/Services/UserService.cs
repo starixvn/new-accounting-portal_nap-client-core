@@ -18,6 +18,10 @@
 
         Task<User> GetAsync(string username);
 
+        IEnumerable<User> GetBySite(int siteId, bool? isActive);
+
+        Task<IEnumerable<User>> GetBySiteAsync(int siteId, bool? isActive);
+
         int GetUserLevel(int userId, int siteId);
 
         Task<int> GetUserLevelAsync(int userId, int siteId);
@@ -92,6 +96,14 @@
             Check.Argument.IsNotEmpty(username, "username");
             var userClient = new UserClient();
             return await userClient.Get(username).ConfigureAwait(false);
+        }
+
+        public IEnumerable<User> GetBySite(int siteId, bool? isActive) => GetBySiteAsync(siteId, isActive).Result;
+
+        public async Task<IEnumerable<User>> GetBySiteAsync(int siteId, bool? isActive)
+        {
+            var userClient = new UserClient();
+            return await userClient.GetBySite(siteId, isActive).ConfigureAwait(false);
         }
 
         public int GetUserLevel(int userId, int siteId) => GetUserLevelAsync(userId, siteId).Result;

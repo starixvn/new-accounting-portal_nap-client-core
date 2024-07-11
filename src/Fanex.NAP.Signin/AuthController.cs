@@ -194,7 +194,7 @@ public class AuthController : Controller
 
     public ActionResult ReCheckIn()
     {
-        if (!napSettings.EnableReCheckIn)
+        if (!napSettings.EnableReCheckIn || maintenanceService.IsUnderMaintenance())
         {
             return Json(new
             {
@@ -217,7 +217,8 @@ public class AuthController : Controller
 
     private async Task DoSignOut()
     {
-        if (napSession.OnUserId != 0)
+        var isMaintenance = await maintenanceService.IsUnderMaintenanceAsync();
+        if (napSession.OnUserId != 0 && !isMaintenance)
         {
             await securityService.LogoutAsync(napSession.OnUserId);
         }
@@ -396,7 +397,7 @@ public class AuthController : Controller
         }
 
         const string text = SignInHelper.ReCheckInScript;
-            
+
         return Content($"window.rootUrl='{SignInHelper.PathBase}';\r\n{text}", "text/javascript");
     }
 
@@ -449,8 +450,10 @@ public class AuthController : Controller
         var onuserIdDecrypt = Cryptography.DecryptPassword(onuserId.Replace(" ", "+"));
 
         var criteria = CreateSsoLoginParameter(userIdDecrypt, onuserIdDecrypt);
-        var ssoLoginOnUserId = await securityService.SSOLoginAsync(criteria);
-        
+        var ssoLoginOnUserId = await maintenanceService.IsUnderMaintenanceAsync()
+        ? criteria.UserId
+        : await securityService.SSOLoginAsync(criteria);
+
         await CreateSSOAuth(userId, ssoLoginOnUserId);
 
         var nextUrl = string.IsNullOrEmpty(redirectUrl) ? SignInHelper.PathBase : redirectUrl;
@@ -459,7 +462,10 @@ public class AuthController : Controller
 
     public async Task<bool> IsSSOAuthenticated(string time)
     {
-        var currentTime = await securityService.GetTimeAsync();
+        var isMaintenance = await maintenanceService.IsUnderMaintenanceAsync();
+        var currentTime = isMaintenance
+        ? DateTime.Now.ToString()
+        : await securityService.GetTimeAsync();
         var timeDecrypt = Cryptography.DecryptPassword(time.Replace(" ", "+"));
         var expiration = Convert.ToDateTime(currentTime) - Convert.ToDateTime(timeDecrypt);
 
@@ -469,7 +475,7 @@ public class AuthController : Controller
     private async Task<bool> CreateSSOAuth(string userId, int onUserId)
     {
         var userIdDecrypt = Cryptography.DecryptPassword(userId.Replace(" ", "+"));
-        
+
         var user = await userService.GetAsync(int.Parse(userIdDecrypt));
         napSession.UserId = user.Id;
         napSession.UserName = user.Username;
@@ -539,7 +545,9 @@ public class AuthController : Controller
     private async Task<ActionResult> DefaultLoginFlow(User user)
     {
         var criteria = SetUserCheckInCriteria(user.Id);
-        var onUserId = await securityService.LoginAsync(criteria);
+        var onUserId = await maintenanceService.IsUnderMaintenanceAsync()
+            ? user.Id
+            : await securityService.LoginAsync(criteria);
 
         await SaveUserSession(user, user.Username, onUserId);
         return Redirect(SignInHelper.PathBase);

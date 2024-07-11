@@ -1,12 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <PackageReleaseNotes>
-      - Only support net 7+
+      - Only support net 8+
     </PackageReleaseNotes>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>2.0.1.3</Version>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <Title>Fanex.NAP.SignIn</Title>
+    <Description>Lightweigt sign in component for all NAP sites</Description>
+    <Copyright>NexDev</Copyright>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
