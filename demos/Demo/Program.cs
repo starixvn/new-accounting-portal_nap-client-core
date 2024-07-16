@@ -14,6 +14,7 @@ using ONEbook.UM.Configurations;
 using ONEbook.UM.Helpers;
 using ONEbook.UM.Services;
 using ONEbook.UM.Transport;
+using Demo;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -47,7 +48,7 @@ services.AddAuthentication(options =>
 });
 
 services.AddSingleton(new UMClientConfiguration().Initialize(configuration));
-
+services.AddRedis(configuration);
 services.AddSession();
 services.AddSingleton<INapSession, NapSession>();
 services.AddSingleton<INapSettings>(new NapSettings(configuration));
@@ -71,8 +72,6 @@ NapClientManager
 
 
 app.UseDeveloperExceptionPage();
-
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -81,6 +80,9 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 await app.RunAsync();

@@ -8,7 +8,7 @@
 
     internal interface IUserClient
     {
-        Task<IEnumerable<MenuItem>> GetMenuItem(int userId, int siteId, string env = Constant.UAT, bool? isActive = null);
+        Task<IEnumerable<MenuItem>> GetMenuItem(int userId, int siteId, string env = Constant.UAT);
 
         Task<IEnumerable<SiteLevel>> GetSiteLevel(int userId, string env = Constant.UAT);
 
@@ -32,11 +32,11 @@
 
     internal class UserClient : BaseClient, IUserClient
     {
-        public async Task<IEnumerable<MenuItem>> GetMenuItem(int userId, int siteId, string env = Constant.UAT, bool? isActive = null)
+        public async Task<IEnumerable<MenuItem>> GetMenuItem(int userId, int siteId, string env = Constant.UAT)
         {
             return await Get<IEnumerable<MenuItem>>(CreateRequestUri(
                 string.Format(RelativePaths.GetMenuItem, userId),
-                new { siteId, environment = env, isActive }));
+                new { siteId, environment = env }));
         }
 
         public async Task<IEnumerable<SiteLevel>> GetSiteLevel(int userId, string env = Constant.UAT)

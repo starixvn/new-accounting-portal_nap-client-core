@@ -233,8 +233,7 @@ public class AuthController : Controller
         napSession.MenuItemList = userService.GetMenuItem(
                 user.Id,
                 napSettings.SiteId,
-                napSettings.Environment,
-                true)
+                napSettings.Environment)
             .ToList();
     }
 
@@ -486,8 +485,7 @@ public class AuthController : Controller
         {
             napSession.MenuItemList = await userService.GetMenuItemAsync(user.Id,
                 napSettings.SiteId,
-                napSettings.Environment,
-                true) as IList<MenuItem>;
+                napSettings.Environment) as IList<MenuItem>;
         }
 
         await CreateAuthInfo(user);

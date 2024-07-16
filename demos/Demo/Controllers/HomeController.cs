@@ -3,9 +3,11 @@
 using System.Diagnostics;
 using Fanex.NAP.Client.Attributes;
 using Fanex.NAP.Client.Helpers.Business;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models;
 
+[Authorize]
 [NapSuperAuth]
 public class HomeController : Controller
 {
