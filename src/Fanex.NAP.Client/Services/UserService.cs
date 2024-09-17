@@ -1,6 +1,7 @@
 ﻿namespace Fanex.NAP.Client.Services
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Clients;
     using Helpers.Business;
@@ -18,13 +19,17 @@
 
         Task<User> GetAsync(string username);
 
+        IEnumerable<User> GetBySite(int siteId, bool? isActive);
+
+        Task<IEnumerable<User>> GetBySiteAsync(int siteId, bool? isActive);
+
         int GetUserLevel(int userId, int siteId);
 
         Task<int> GetUserLevelAsync(int userId, int siteId);
 
-        IEnumerable<MenuItem> GetMenuItem(int userId, int siteId, string environment = Constant.UAT, bool? isActive = null);
+        IEnumerable<MenuItem> GetMenuItem(int userId, int siteId, string environment = Constant.UAT);
 
-        Task<IEnumerable<MenuItem>> GetMenuItemAsync(int userId, int siteId, string environment = Constant.UAT, bool? isActive = null);
+        Task<IEnumerable<MenuItem>> GetMenuItemAsync(int userId, int siteId, string environment = Constant.UAT);
 
         int GetPermission(int userId, int siteId, string functionKey);
 
@@ -53,16 +58,16 @@
 
     public class UserService : IUserService
     {
-        public IEnumerable<MenuItem> GetMenuItem(int userId, int siteId, string environment = Constant.UAT, bool? isActive = null)
-            => GetMenuItemAsync(userId, siteId, environment, isActive).Result;
+        public IEnumerable<MenuItem> GetMenuItem(int userId, int siteId, string environment = Constant.UAT)
+            => GetMenuItemAsync(userId, siteId, environment).Result;
 
-        public async Task<IEnumerable<MenuItem>> GetMenuItemAsync(int userId, int siteId, string environment = Constant.UAT, bool? isActive = null)
+        public async Task<IEnumerable<MenuItem>> GetMenuItemAsync(int userId, int siteId, string environment = Constant.UAT)
         {
             Check.Argument.IsNotNegativeOrZero(userId, "userId");
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
             Check.Argument.IsNotEmpty(environment, "environment");
             var userClient = new UserClient();
-            return await userClient.GetMenuItem(userId, siteId, environment, isActive).ConfigureAwait(false);
+            return await userClient.GetMenuItem(userId, siteId, environment).ConfigureAwait(false);
         }
 
         public IEnumerable<SiteLevel> GetSiteLevel(int userId, string environment = Constant.UAT)
@@ -73,7 +78,9 @@
             Check.Argument.IsNotNegativeOrZero(userId, "userId");
             Check.Argument.IsNotEmpty(environment, "environment");
             var userClient = new UserClient();
-            return await userClient.GetSiteLevel(userId, environment).ConfigureAwait(false);
+            var siteLevels = await userClient.GetSiteLevel(userId, environment).ConfigureAwait(false);
+            return siteLevels.OrderBy(s => s.SiteId).ToList();
+
         }
 
         public User Get(int userId) => GetAsync(userId).Result;
@@ -92,6 +99,14 @@
             Check.Argument.IsNotEmpty(username, "username");
             var userClient = new UserClient();
             return await userClient.Get(username).ConfigureAwait(false);
+        }
+
+        public IEnumerable<User> GetBySite(int siteId, bool? isActive) => GetBySiteAsync(siteId, isActive).Result;
+
+        public async Task<IEnumerable<User>> GetBySiteAsync(int siteId, bool? isActive)
+        {
+            var userClient = new UserClient();
+            return await userClient.GetBySite(siteId, isActive).ConfigureAwait(false);
         }
 
         public int GetUserLevel(int userId, int siteId) => GetUserLevelAsync(userId, siteId).Result;
@@ -123,7 +138,10 @@
             Check.Argument.IsNotNegativeOrZero(userId, "userId");
             Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
             var userClient = new UserClient();
-            return await userClient.GetPermissions(userId, siteId, parentFunctionKey, environment).ConfigureAwait(false);
+            var permissions= await userClient.GetPermissions(userId, siteId, parentFunctionKey, environment).ConfigureAwait(false);
+
+            return permissions.OrderBy(p => p.Id).ToList();
+
         }
 
         public bool IsHavingPermission(int userId, int siteId, string functionKey, Constant.Policy policy)

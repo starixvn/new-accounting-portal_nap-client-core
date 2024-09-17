@@ -5,17 +5,13 @@ VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{18FD23D1-4AB1-4057-B60E-AF481F9D7167}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0D5D758A-D83B-4941-8542-113A559367B7}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demos", "demos", "{E25616D8-52F1-44AF-B4E8-182AB6C34A55}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client", "src\Fanex.NAP.Client\Fanex.NAP.Client.csproj", "{CF055DAD-C04A-4ED5-822B-6FF2C0B25202}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.SignIn", "src\Fanex.NAP.SignIn\Fanex.NAP.SignIn.csproj", "{92486801-9CC2-4550-9293-1955C2546A81}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.NAP.Client.Demo", "demos\Demo\Demo.csproj", "{9BB18CA8-A3D7-40C3-B542-15A9B6EE4854}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fanex.Nap.Client.Integration.Tests", "tests\Fanex.Nap.Client.Integration.Tests\Fanex.Nap.Client.Integration.Tests.csproj", "{177DD07C-B8BE-4EE2-A45D-AE130C9744A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "demos\Demo\Demo.csproj", "{9BB18CA8-A3D7-40C3-B542-15A9B6EE4854}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +31,6 @@ Global
 		{9BB18CA8-A3D7-40C3-B542-15A9B6EE4854}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BB18CA8-A3D7-40C3-B542-15A9B6EE4854}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9BB18CA8-A3D7-40C3-B542-15A9B6EE4854}.Release|Any CPU.Build.0 = Release|Any CPU
-		{177DD07C-B8BE-4EE2-A45D-AE130C9744A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{177DD07C-B8BE-4EE2-A45D-AE130C9744A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{177DD07C-B8BE-4EE2-A45D-AE130C9744A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{177DD07C-B8BE-4EE2-A45D-AE130C9744A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -47,7 +39,6 @@ Global
 		{CF055DAD-C04A-4ED5-822B-6FF2C0B25202} = {18FD23D1-4AB1-4057-B60E-AF481F9D7167}
 		{92486801-9CC2-4550-9293-1955C2546A81} = {18FD23D1-4AB1-4057-B60E-AF481F9D7167}
 		{9BB18CA8-A3D7-40C3-B542-15A9B6EE4854} = {E25616D8-52F1-44AF-B4E8-182AB6C34A55}
-		{177DD07C-B8BE-4EE2-A45D-AE130C9744A5} = {0D5D758A-D83B-4941-8542-113A559367B7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {15AF8C0F-C3F1-4EB6-9E34-A3DC1272A98D}
