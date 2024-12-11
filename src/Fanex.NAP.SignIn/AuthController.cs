@@ -161,7 +161,7 @@ public class AuthController(
     {
         await DoSignOut();
 
-        redirectUrl = string.IsNullOrEmpty(redirectUrl) ? $"{SignInHelper.PathBase}Auth" : redirectUrl;
+        redirectUrl = string.IsNullOrEmpty(redirectUrl) ? "/Auth" : redirectUrl;
 
         return Redirect(redirectUrl);
     }
@@ -236,7 +236,7 @@ public class AuthController(
             NetSessionId = HttpContext.Session.Id,
             Ip = GetClientIP(),
             BrowserName = Request.Headers["User-Agent"].ToString(),
-            CountryCode = ResolveCountry(HttpContext.Request)?.GeoId.ToString(CultureInfo.CurrentCulture),
+            CountryCode = GetDefaultCountryCode(),
             Domain = HttpContext.Request.Host.ToString(),
             Platform = Environment.OSVersion.Platform.ToString()
         };
@@ -253,31 +253,11 @@ public class AuthController(
         return clientIP;
     }
 
-    private static RegionInfo ResolveCountry(HttpRequest request)
+    private static string GetDefaultCountryCode()
     {
-        var culture = ResolveCulture(request);
+        var culture = CultureInfo.CreateSpecificCulture("en");
 
-        if (culture == null)
-        {
-            return null;
-        }
-
-        try
-        {
-            return new RegionInfo(culture.LCID);
-        }
-        catch (CultureNotFoundException)
-        {
-            return null;
-        }
-    }
-
-    private static CultureInfo ResolveCulture(HttpRequest request)
-    {
-        var userLanguages = request.Headers["Accept-Language"].ToString();
-        var firstLang = userLanguages.Split(',').FirstOrDefault();
-        var defaultLang = string.IsNullOrEmpty(firstLang) ? "en" : firstLang;
-        return CultureInfo.CreateSpecificCulture(defaultLang);
+        return new RegionInfo(culture.LCID).GeoId.ToString(CultureInfo.CurrentCulture);
     }
 
     private async Task SaveUserSession(User user, string userName, int onUserId)
@@ -345,7 +325,7 @@ public class AuthController(
         var isDownTime = await maintenanceService.IsUnderMaintenanceAsync();
         if (!isDownTime)
         {
-            return Redirect(SignInHelper.PathBase);
+            return Redirect("/");
         }
 
         var downTime = await maintenanceService.GetUnderMaintenanceTimeAsync();
@@ -363,18 +343,6 @@ public class AuthController(
     public ActionResult Error()
     {
         return View("Error");
-    }
-
-    public ActionResult RecheckinScript()
-    {
-        if (!napSettings.EnableReCheckIn)
-        {
-            return Content(string.Empty, "text/javascript");
-        }
-
-        const string text = SignInHelper.ReCheckInScript;
-
-        return Content($"window.rootUrl='{SignInHelper.PathBase}';\r\n{text}", "text/javascript");
     }
 
     #endregion
@@ -419,7 +387,7 @@ public class AuthController(
         var logged = await IsSSOAuthenticated(time);
         if (!logged)
         {
-            return Redirect($"{SignInHelper.PathBase}Auth/Index");
+            return Redirect("/Auth/Index");
         }
 
         var userIdDecrypt = Cryptography.DecryptPassword(userId.Replace(" ", "+"));
@@ -430,7 +398,7 @@ public class AuthController(
 
         await CreateSSOAuth(userId, ssoLoginOnUserId);
 
-        var nextUrl = string.IsNullOrEmpty(redirectUrl) ? SignInHelper.PathBase : redirectUrl;
+        var nextUrl = string.IsNullOrEmpty(redirectUrl) ? "/" : redirectUrl;
         return Redirect(nextUrl);
     }
 
@@ -477,7 +445,7 @@ public class AuthController(
             NetSessionId = HttpContext.Session.Id,
             IP = GetClientIP(),
             BrowserName = Request.Headers["User-Agent"].ToString(),
-            CountryCode = ResolveCountry(HttpContext.Request)?.GeoId.ToString(CultureInfo.CurrentCulture),
+            CountryCode = GetDefaultCountryCode(),
             Domain = HttpContext.Request.Host.ToString(),
             Platform = Environment.OSVersion.Platform.ToString()
         };
@@ -518,7 +486,7 @@ public class AuthController(
         var onUserId = await securityService.LoginAsync(criteria);
 
         await SaveUserSession(user, user.Username, onUserId);
-        return Redirect(SignInHelper.PathBase);
+        return Redirect("/");
     }
 
     [HttpGet]

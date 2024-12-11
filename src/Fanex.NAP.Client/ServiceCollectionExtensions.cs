@@ -1,13 +1,13 @@
-﻿namespace Microsoft.Extensions.DependencyInjection;
+﻿namespace Fanex.NAP.Client;
 
 using System;
 using System.Net.Http;
-using Configuration;
+using Fanex.NAP.Client.Clients;
 using Fanex.NAP.Client.Configuration;
 using Fanex.NAP.Client.Services;
-using Fanex.NAP.Client;
-using Fanex.NAP.Client.Clients;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {

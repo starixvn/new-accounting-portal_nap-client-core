@@ -10,12 +10,12 @@ using ONEbook.UM.Helpers;
 using ONEbook.UM.Services;
 using ONEbook.UM.Transport;
 using Demo;
+using Fanex.NAP.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 var configuration = builder.Configuration;
 
-services.AddControllers();
 services.AddControllersWithViews();
 services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

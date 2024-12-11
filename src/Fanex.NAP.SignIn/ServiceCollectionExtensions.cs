@@ -1,19 +1,20 @@
-﻿namespace Microsoft.Extensions.DependencyInjection;
+﻿namespace Fanex.NAP.SignIn;
 
 using System;
-using Configuration;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using ONEbook.UM.AspNetCore;
-using ONEbook.UM.Helpers;
 using ONEbook.UM.AspNetCore.Filters;
 using ONEbook.UM.Configurations;
+using ONEbook.UM.Helpers;
 using ONEbook.UM.Services;
-using Microsoft.Extensions.Caching.Memory;
 using ONEbook.UM.Transport;
 
 public static class ServiceCollectionExtensions
 {
-    [ObsoleteAttribute("This method is obsolete. Call AddOneBookUm instead.", true)]
+    [Obsolete("This method is obsolete. Call AddOneBookUm instead.", true)]
     public static IServiceCollection AddMaintenance(this IServiceCollection services, IConfiguration configuration)
     {
         return services.AddOneBookUm(configuration);

@@ -6,11 +6,11 @@
     <PackageReleaseNotes>
       - Only support net 8+
     </PackageReleaseNotes>
-    <Version>2.0.2.1</Version>
+    <Version>2.0.2.5</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
     <Title>Fanex.NAP.SignIn</Title>
-    <Description>Lightweigt sign in component for all NAP sites</Description>
+    <Description>Lightweight sign in component for all NAP sites</Description>
     <Copyright>NexDev</Copyright>
   </PropertyGroup>
   <ItemGroup>

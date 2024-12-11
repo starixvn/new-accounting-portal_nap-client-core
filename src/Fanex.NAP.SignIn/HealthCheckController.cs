@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using ONEbook.UM.AspNetCore.Filters;
 
 [AllowAnonymous]
-public class HealthCheck : Controller
+public class HealthCheckController : Controller
 {
     private static bool alive = true;
 
@@ -30,7 +30,7 @@ public class HealthCheck : Controller
                 "Alive is false");
     }
 
-    [HttpGet("kill")]
+    [HttpGet]
     [SkipUMFilter]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public IActionResult Kill()
@@ -55,14 +55,20 @@ public class HealthCheck : Controller
     {
         const int megabyte = 1024 * 1024;
         var stringBuilder = new StringBuilder();
+
         var sw = Stopwatch.StartNew();
         sw.Start();
 
         using var currentProcess = Process.GetCurrentProcess();
         currentProcess.Refresh();
         var memory = currentProcess.WorkingSet64 / megabyte;
+        var heapSize = GC.GetTotalMemory(false) / megabyte;
 
-        stringBuilder.Append($"Before GC.Collect: {memory} Mb.\r\n");
+        stringBuilder.Append($"Before GC.Collect: WorkingSet64 = {memory} Mb. HeapSize = {heapSize} Mb.\r\n");
+
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
+        GC.WaitForPendingFinalizers();
+        GC.WaitForFullGCComplete();
 
         GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, true, true);
@@ -71,9 +77,10 @@ public class HealthCheck : Controller
 
         currentProcess.Refresh();
         memory = currentProcess.WorkingSet64 / megabyte;
+        heapSize = GC.GetTotalMemory(false) / megabyte;
 
         var duration = sw.ElapsedMilliseconds;
-        stringBuilder.Append($"After GC.Collect. Usage memory = {memory}.\r\n");
+        stringBuilder.Append($"After GC.Collect. WorkingSet64 = {memory} Mb. HeapSize = {heapSize}.\r\n");
         stringBuilder.Append($"Duration: {duration} milliseconds.\r\n");
 
         return Ok(stringBuilder.ToString());
