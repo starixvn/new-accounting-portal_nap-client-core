@@ -4,13 +4,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using ONEbook.UM.AspNetCore;
-using ONEbook.UM.Configurations;
-using ONEbook.UM.Helpers;
-using ONEbook.UM.Services;
-using ONEbook.UM.Transport;
 using Demo;
 using Fanex.NAP.Client;
+using ONEbook.UM.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
@@ -42,15 +38,10 @@ services.AddAuthentication(options =>
     options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 });
 
-services.AddSingleton(new UMClientConfiguration().Initialize(configuration));
-services.AddRedis(configuration);
+services.AddOneBookUmForWeb(configuration);
+services.AddAuthenticationRedis(configuration);
 services.AddSession();
 services.AddNapClient(configuration);
-services.AddSingleton<IMaintenanceService, MaintenanceService>();
-services.AddSingleton<IUMCacheService, UMCacheService>();
-services.AddSingleton<IUMRestClient, UMRestClient>();
-services.AddSingleton<IHttpContextHelper, HttpContextHelper>();
-services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 var app = builder.Build();
 

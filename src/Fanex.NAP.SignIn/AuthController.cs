@@ -20,7 +20,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Models;
-using ONEbook.UM.AspNetCore.Filters;
+using ONEbook.UM.Filters;
 using ONEbook.UM.Services;
 using ViewModel;
 
@@ -73,35 +73,50 @@ public class AuthController(
     [HttpPost]
     public async Task<IActionResult> Index(string username, string password, string loginToken = "")
     {
-        var indexViewModel = new IndexViewModel();
-
-        if (IsValidUserPassword(username, password, loginToken))
+        try
         {
-            var user = await userService.GetAsync(username.Trim());
-
-            if (IsAuthorizedUser(user))
-            {
-                if (IsActivatedUser(user))
-                {
-                    return await LoginFlow(user);
-                }
-
-                indexViewModel.Message = "Your account was suspended";
-            }
-            else
-            {
-                indexViewModel.Message = "You have no authorization";
-            }
+            var user = await GetValidUser(username, password, loginToken);
+            return await LoginFlow(user);
         }
-        else
+        catch (Exception e)
         {
-            indexViewModel.Message = "Invalid Username or Password";
+            GenerateNewToken();
+            
+            var indexViewModel = new IndexViewModel
+            {
+                Message = e.Message,
+                FormToken = FormToken
+            };
+            
+            return View("Index", indexViewModel);
+        }
+    }
+
+    private async Task<User> GetValidUser(string username, string password, string loginToken = "")
+    {
+        if (string.IsNullOrEmpty(FormToken))
+        {
+            throw new InvalidOperationException("Form token is empty.");
         }
 
-        GenerateNewToken();
-        indexViewModel.FormToken = FormToken;
+        if (!IsValidUserPassword(username, password, loginToken))
+        {
+            throw new InvalidOperationException("Invalid Username or Password");
+        }
 
-        return View("Index", indexViewModel);
+        var user = await userService.GetAsync(username.Trim());
+
+        if (!IsAuthorizedUser(user))
+        {
+            throw new InvalidOperationException("You have no authorization");
+        }
+
+        if (!IsActivatedUser(user))
+        {
+            throw new InvalidOperationException("Your account was suspended");
+        }
+
+        return user;
     }
 
     private bool IsValidUserPassword(string username, string password, string token)

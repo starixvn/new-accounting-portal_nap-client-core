@@ -6,10 +6,11 @@ using Fanex.NAP.Client.Helpers.Business;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models;
+using ONEbook.UM.Services;
 
 [Authorize]
 [SessionAuthorize]
-public class HomeController : Controller
+public class HomeController(IMaintenanceService maintenanceService) : Controller
 {
     [NapAuth(FunctionKey = "Dashboard", Policy = Constant.Policy.Read)]
     public IActionResult Index()
@@ -36,5 +37,12 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    public IActionResult IsUm()
+    {
+        var isUm = maintenanceService.IsUnderMaintenance();
+
+        return Content(isUm.ToString());
     }
 }

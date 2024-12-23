@@ -8,7 +8,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ONEbook.UM.AspNetCore.Filters;
+using ONEbook.UM.Filters;
 
 [AllowAnonymous]
 public class HealthCheckController : Controller

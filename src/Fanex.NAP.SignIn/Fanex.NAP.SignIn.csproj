@@ -1,12 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
     <PackageReleaseNotes>
       - Only support net 8+
     </PackageReleaseNotes>
-    <Version>2.0.2.5</Version>
+    <Version>2.0.2.8</Version>
+    <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
     <Title>Fanex.NAP.SignIn</Title>
@@ -16,13 +17,10 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-  
   <ItemGroup>
-    <PackageReference Include="ONEbook.UM.AspNetCore" Version="3.1.1.1" />
-    <PackageReference Include="ONEbook.UM.AspNetCore.Filters" Version="3.1.1.1" />
-    <PackageReference Include="ONEbook.UM.Transport" Version="3.1.2" />
+    <PackageReference Include="ONEbook.UM" Version="3.2.4" />
   </ItemGroup>
- 
+  
   <ItemGroup>
     <ProjectReference Include="..\Fanex.NAP.Client\Fanex.NAP.Client.csproj" />
   </ItemGroup>
