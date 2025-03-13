@@ -1,5 +1,6 @@
 ﻿namespace Fanex.NAP.Client.Services;
 
+using System;
 using System.Threading.Tasks;
 using Clients;
 using Models.ParameterObject;

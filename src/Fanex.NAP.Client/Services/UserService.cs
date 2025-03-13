@@ -78,6 +78,7 @@ public class UserService(IUserClient userClient) : IUserService
     }
 
     public User Get(int userId) => GetAsync(userId).Result;
+
     public User Get(string username) => GetAsync(username).Result;
 
     public async Task<User> GetAsync(int userId)
@@ -85,7 +86,6 @@ public class UserService(IUserClient userClient) : IUserService
         return await userClient.Get(userId).ConfigureAwait(false);
     }
 
-   
     public async Task<User> GetAsync(string username)
     {
         return await userClient.Get(username).ConfigureAwait(false);

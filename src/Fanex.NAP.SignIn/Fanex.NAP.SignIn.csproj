@@ -6,7 +6,7 @@
     <PackageReleaseNotes>
       - Only support net 8+
     </PackageReleaseNotes>
-    <Version>2.0.2.8</Version>
+    <Version>2.0.3</Version>
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
@@ -24,6 +24,15 @@
   <ItemGroup>
     <ProjectReference Include="..\Fanex.NAP.Client\Fanex.NAP.Client.csproj" />
   </ItemGroup>
- 
+  <ItemGroup>
+    <Content Include="Views/Auth/*.*">
+      <Pack>true</Pack>
+      <PackagePath>Views\Auth</PackagePath>
+    </Content>
+    <Content Include="wwwroot/nap-auth/*.*">
+      <Pack>true</Pack>
+      <PackagePath>wwwroot\nap-auth</PackagePath>
+    </Content>
+  </ItemGroup>
 
 </Project>

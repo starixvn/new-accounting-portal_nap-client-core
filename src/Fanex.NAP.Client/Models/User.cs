@@ -1,4 +1,6 @@
-﻿namespace Fanex.NAP.Client.Models;
+﻿using System;
+
+namespace Fanex.NAP.Client.Models;
 
 public class User
 {
@@ -17,4 +19,6 @@ public class User
     public string Email { get; set; }
 
     public int GroupId { get; set; }
+
+    public DateTime PasswordExpiry { get; set; }
 }

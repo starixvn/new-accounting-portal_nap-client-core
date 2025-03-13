@@ -5,43 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="wwwroot\nap-auth\accessdenied.css" />
-    <Content Remove="wwwroot\nap-auth\auth.css" />
-    <Content Remove="wwwroot\nap-auth\changepassword.css" />
-    <Content Remove="wwwroot\nap-auth\cryptojs.js" />
-    <Content Remove="wwwroot\nap-auth\error.css" />
-    <Content Remove="wwwroot\nap-auth\jquery-1.8.0.min.js" />
-    <Content Remove="wwwroot\nap-auth\jquery.validate.min.js" />
-    <Content Remove="wwwroot\nap-auth\jquery.validate.unobtrusive.min.js" />
-    <Content Remove="wwwroot\nap-auth\jquery.validationEngine-en.js" />
-    <Content Remove="wwwroot\nap-auth\jquery.validationEngine.js" />
-    <Content Remove="wwwroot\nap-auth\otp.css" />
-    <Content Remove="wwwroot\nap-auth\recheckin.js" />
-    <Content Remove="wwwroot\nap-auth\validationEngine.jquery.css" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.3" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\nap-auth\accessdenied.css" />
-    <None Include="wwwroot\nap-auth\auth.css" />
-    <None Include="wwwroot\nap-auth\changepassword.css" />
-    <None Include="wwwroot\nap-auth\cryptojs.js" />
-    <None Include="wwwroot\nap-auth\error.css" />
-    <None Include="wwwroot\nap-auth\jquery-1.8.0.min.js" />
-    <None Include="wwwroot\nap-auth\jquery.validate.min.js" />
-    <None Include="wwwroot\nap-auth\jquery.validate.unobtrusive.min.js" />
-    <None Include="wwwroot\nap-auth\jquery.validationEngine-en.js" />
-    <None Include="wwwroot\nap-auth\jquery.validationEngine.js" />
-    <None Include="wwwroot\nap-auth\otp.css" />
-    <None Include="wwwroot\nap-auth\recheckin.js" />
-    <None Include="wwwroot\nap-auth\validationEngine.jquery.css" />
-  </ItemGroup>
-
- 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.2" />
-  </ItemGroup>
-
  
   <ItemGroup>
     <ProjectReference Include="..\..\src\Fanex.NAP.Client\Fanex.NAP.Client.csproj" />

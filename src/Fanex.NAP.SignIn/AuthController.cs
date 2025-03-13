@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Models;
 using ONEbook.UM.Filters;
 using ONEbook.UM.Services;
@@ -31,8 +30,7 @@ public class AuthController(
     IGroupService groupService,
     IUserService userService,
     IMaintenanceService maintenanceService,
-    INapSettings napSettings,
-    IConfiguration configuration)
+    INapSettings napSettings)
     : Controller
 {
     #region members
@@ -41,7 +39,7 @@ public class AuthController(
     private const string OtpSite = "NAP";
 
     #endregion members
-    
+
     #region sign in
 
     private string FormToken
@@ -76,18 +74,18 @@ public class AuthController(
         try
         {
             var user = await GetValidUser(username, password, loginToken);
-            return await LoginFlow(user);
+            return await OtpLoginFlow(user);
         }
         catch (Exception e)
         {
             GenerateNewToken();
-            
+
             var indexViewModel = new IndexViewModel
             {
                 Message = e.Message,
                 FormToken = FormToken
             };
-            
+
             return View("Index", indexViewModel);
         }
     }
@@ -481,48 +479,18 @@ public class AuthController(
 
     #region LoginFlow
 
-    private async Task<ActionResult> LoginFlow(User user)
+    private async Task<ActionResult> OtpLoginFlow(User user)
     {
         var ignoredOtp = !napSettings.EnableOtp
                          || await userService.IgnoredOtpAsync(user.Id, OtpSite);
 
         if (ignoredOtp)
         {
-            return await DefaultLoginFlow(user);
+            return await FirstLoginFlow(user);
         }
 
         HttpContext.Session.SetInt32("OtpUserId", user.Id);
-        return RedirectToAction("OtpLoginFlow");
-    }
-
-    private async Task<ActionResult> DefaultLoginFlow(User user)
-    {
-        var criteria = SetUserCheckInCriteria(user.Id);
-        var onUserId = await securityService.LoginAsync(criteria);
-
-        await SaveUserSession(user, user.Username, onUserId);
-        return Redirect("/");
-    }
-
-    [HttpGet]
-    public async Task<ActionResult> OtpLoginFlow()
-    {
-        var otpUserId = HttpContext.Session.GetInt32("OtpUserId");
-        var userId = otpUserId ?? 0;
-        if (userId == 0)
-        {
-            return Redirect(configuration.GetSection("AuthSettings:LoginPath").Value);
-        }
-
-        var ignoredOtp = !napSettings.EnableOtp
-                         || await userService.IgnoredOtpAsync(userId, OtpSite);
-
-        if (ignoredOtp)
-        {
-            return RedirectToAction("Index");
-        }
-
-        return View();
+        return View("OtpLoginFlow");
     }
 
     [HttpPost]
@@ -531,11 +499,9 @@ public class AuthController(
         ViewBag.Message = string.Empty;
         var otpUserId = HttpContext.Session.GetInt32("OtpUserId");
         var userId = otpUserId ?? 0;
-        var ignoredOtp = !napSettings.EnableOtp
-                         || await userService.IgnoredOtpAsync(userId, OtpSite);
-        if (userId == 0 || ignoredOtp)
+
+        if (userId == 0)
         {
-            HttpContext.Session.SetInt32("OtpUserId", 0);
             return RedirectToAction("Index");
         }
 
@@ -546,15 +512,63 @@ public class AuthController(
         {
             HttpContext.Session.SetInt32("OtpUserId", 0);
             var user = await userService.GetAsync(userId);
-            return await DefaultLoginFlow(user);
+            return await FirstLoginFlow(user);
         }
 
         ViewBag.Message = "Invalid OTP. Please try again";
 
-        return View();
+        return View("OtpLoginFlow");
+    }
+
+    private async Task<ActionResult> FirstLoginFlow(User user)
+    {
+        if (user.PasswordExpiry.Year != 1900)
+        {
+            return await DefaultLoginFlow(user);
+        }
+        HttpContext.Session.SetInt32("FirstLoginUserId", user.Id);
+        return View("FirstLoginFlow", new UpdatePasswordModel { Username = user.Username });
+    }
+
+    [HttpPost]
+    public async Task<JsonResult> FirstLoginFlow([FromBody] UpdatePasswordModel criteria)
+    {
+        var firstLoginUserId = HttpContext.Session.GetInt32("FirstLoginUserId");
+        var userId = firstLoginUserId ?? 0;
+        if (userId == 0)
+        {
+            return Json(new { ErrorMsg = "Invalid Flow" });
+        }
+
+        var user = await userService.GetAsync(userId);
+        var oldPwd = criteria.OldUserPwd;
+
+        if (oldPwd.Equals(user.Password))
+        {
+            var password = criteria.UserPwd;
+            await securityService.UpdatePasswordAsync(napSettings.SiteId, user.Id, password);
+            HttpContext.Session.SetInt32("FirstLoginUserId", 0);
+            await DefaultLoginFlow(user);
+        }
+        else
+        {
+            return Json(new { ErrorMsg = "Wrong password" });
+        }
+
+        return Json(new { ErrorMsg = "" });
     }
 
     #endregion
+
+    private async Task<ActionResult> DefaultLoginFlow(User user)
+    {
+        var criteria = SetUserCheckInCriteria(user.Id);
+        var onUserId = await securityService.LoginAsync(criteria);
+
+        await SaveUserSession(user, user.Username, onUserId);
+        return Redirect("/");
+    }
+
 
     public ActionResult WhoAmI()
     {
