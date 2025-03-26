@@ -150,6 +150,11 @@ public class AuthController(
 
     private bool IsActivatedUser(User user)
     {
+        if (napSettings.IsNapHub)
+        {
+            return true;
+        }
+
         var siteLevelList = userService.GetSiteLevel(user.Id, napSettings.Environment);
 
         var userIsActiveOnThisSite = false;
