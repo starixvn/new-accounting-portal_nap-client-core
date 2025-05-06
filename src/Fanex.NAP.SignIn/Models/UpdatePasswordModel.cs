@@ -20,5 +20,7 @@ public class UpdatePasswordModel
     [StringLength(50, MinimumLength = 2, ErrorMessage = "The {0} field must be at least {2} and maximum {1} characters long.")]
     public string UserPwd { get; set; }
 
+    public string RawUserPwd { get; set; }
+
     public string Username { get; set; }
 }

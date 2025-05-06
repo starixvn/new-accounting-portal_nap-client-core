@@ -69,8 +69,9 @@ public class AuthController(
     }
 
     [HttpPost]
-    public async Task<IActionResult> Index(string username, string password, string loginToken = "")
+    public async Task<IActionResult> Index(string username, string password, string loginToken = "", string rawPassword = "")
     {
+        HttpContext.Session.SetString("RawPassword", rawPassword);
         try
         {
             var user = await GetValidUser(username, password, loginToken);
