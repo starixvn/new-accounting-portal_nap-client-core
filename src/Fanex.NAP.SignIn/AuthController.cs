@@ -1,4 +1,6 @@
-﻿namespace Fanex.NAP.SignIn;
+﻿using Fanex.NAP.Client.Helpers.Business;
+
+namespace Fanex.NAP.SignIn;
 
 using System;
 using System.Collections.Generic;
@@ -77,13 +79,31 @@ public class AuthController(
             var user = await GetValidUser(username, password, loginToken);
             return await OtpLoginFlow(user);
         }
-        catch (Exception e)
+        catch (InvalidOperationException e)
         {
             GenerateNewToken();
 
             var indexViewModel = new IndexViewModel
             {
                 Message = e.Message,
+                FormToken = FormToken
+            };
+
+            return View("Index", indexViewModel);
+        }
+        catch (Exception e)
+        {
+            GenerateNewToken();
+
+            var message = napSettings.Environment == Constant.UAT
+                ? e.Message
+                : "An error occurred while processing your request. Please try again later.";
+
+            Console.WriteLine($"Error: {e.Message}\nStackTrace: {e.StackTrace}");
+
+            var indexViewModel = new IndexViewModel
+            {
+                Message = message,
                 FormToken = FormToken
             };
 
