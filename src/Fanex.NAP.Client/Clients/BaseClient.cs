@@ -8,28 +8,19 @@
     using System.Net.Http;
     using System.Text;
     using System.Threading.Tasks;
-    using Configuration;
     using Exceptions;
     using Helpers.Extensions;
     using Newtonsoft.Json;
 
-    internal class BaseClient
+    public class BaseClient
     {
-        private static readonly HttpClient httpClient = new HttpClient();
-
-        private static readonly Random randomHandler = new Random();
-
-        private readonly INapSettings napSettings;
-
-        public BaseClient()
+        private readonly HttpClient httpClient;
+        public BaseClient(HttpClient httpClient)
         {
-            napSettings = NapClientManager.NapSettings;
-            BaseAddress = new Uri(GetServiceUrl());
+            this.httpClient = httpClient;
         }
 
-        public Uri BaseAddress { get; set; }
-
-        protected async Task<T> Get<T>(Uri requestUri)
+        protected async Task<T> Get<T>(string requestUri)
         {
             using (var message = new HttpRequestMessage(HttpMethod.Get, requestUri))
             {
@@ -42,17 +33,17 @@
                         case HttpStatusCode.InternalServerError:
                             throw new NAPApiException(await response.Content.ReadAsStringAsync());
                         default:
-                        {
-                            var receivedContent = await response.Content.ReadAsStringAsync();
+                            {
+                                var receivedContent = await response.Content.ReadAsStringAsync();
 
-                            return DeserializeObject<T>(requestUri, receivedContent);
-                        }
+                                return DeserializeObject<T>(requestUri, receivedContent);
+                            }
                     }
                 }
             }
         }
 
-        private static T DeserializeObject<T>(Uri requestUri, string content)
+        private static T DeserializeObject<T>(string requestUri, string content)
         {
             try
             {
@@ -60,11 +51,11 @@
             }
             catch (Exception e)
             {
-                throw new Exception($"=====RequestUri:{requestUri}=======Received:===\r\n {content}\r\n========", e);
+                throw new ArgumentException($"=====RequestUri:{requestUri}=======Received:===\r\n {content}\r\n========", e);
             }
         }
 
-        protected async Task<TOutput> Post<TInput, TOutput>(Uri requestUri, TInput body)
+        protected async Task<TOutput> Post<TInput, TOutput>(string requestUri, TInput body)
         {
             var json = JsonConvert.SerializeObject(body);
             using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
@@ -79,22 +70,23 @@
                     }
                     catch (Exception e)
                     {
-                        throw new Exception($"=====RequestUri:{requestUri}=======Received:===\r\n {receivedContent}\r\n========", e);
+                        throw new ArgumentException($"=====RequestUri:{requestUri}=======Received:===\r\n {receivedContent}\r\n========", e);
                     }
                 }
             }
+
         }
 
-        protected Uri CreateRequestUri(string relativePath, params KeyValuePair<string, string>[] queryStringParameters)
+        protected static string CreateRequestPath(string relativePath, params KeyValuePair<string, string>[] queryStringParameters)
         {
             var queryString = string.Empty;
 
-            if (queryStringParameters == null || queryStringParameters.Length <= 0)
+            if (queryStringParameters == null || queryStringParameters.Length == 0)
             {
-                return CreateRequestUri(relativePath, queryString);
+                return CreateRequestPath(relativePath, queryString);
             }
-                
-            var queryStringProperties = ParseQueryString(BaseAddress.Query);
+
+            var queryStringProperties = new NameValueCollection();
             foreach (var queryStringParameter in queryStringParameters)
             {
                 queryStringProperties[queryStringParameter.Key] = queryStringParameter.Value;
@@ -102,42 +94,20 @@
 
             queryString = ToQueryString(queryStringProperties);
 
-            return CreateRequestUri(relativePath, queryString);
+            return CreateRequestPath(relativePath, queryString);
         }
 
-        protected Uri CreateRequestUri(string relativePath, object queryStringParameters)
+        protected static string CreateRequestPath(string relativePath, object queryStringParameters)
         {
             var parameters = queryStringParameters.ToPropertyDictionary()
-                    .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToNullOrString()))
-                    .ToArray();
-            return CreateRequestUri(relativePath, parameters);
+                .Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToNullOrString()))
+                .ToArray();
+            return CreateRequestPath(relativePath, parameters);
         }
 
-        protected Uri CreateRequestUri(string relativePath, string queryString)
+        protected static string CreateRequestPath(string relativePath, string queryString)
         {
-            var uriBuilder = new UriBuilder(BaseAddress + relativePath) { Query = queryString };
-
-            return uriBuilder.Uri;
-        }
-
-        protected string GetServiceUrl()
-        {
-            if (string.IsNullOrWhiteSpace(napSettings.ServiceUrls))
-            {
-                throw new NAPApiException("Service Urls cannot be null or white space");
-            }
-
-            var serviceUrls = napSettings.ServiceUrls.Split(',');
-            var numOfUrl = serviceUrls.Length;
-
-            if (numOfUrl == 1)
-            {
-                return serviceUrls[0];
-            }
-
-            var selectedServiceUrl = serviceUrls[randomHandler.Next(0, numOfUrl)];
-
-            return selectedServiceUrl;
+            return $"{relativePath}{queryString}";
         }
 
         private static void ThrowIfResponseNotSuccessfulAsync(HttpResponseMessage response)
@@ -155,27 +125,6 @@
                 case HttpStatusCode.Unauthorized:
                     throw new UnauthorizedAccessException();
             }
-        }
-
-        private static NameValueCollection ParseQueryString(string queryString)
-        {
-            var queryParameters = new NameValueCollection();
-            var querySegments = queryString.Split(new[] { '&' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var segment in querySegments)
-            {
-                var parts = segment.Split('=');
-                if (parts.Length <= 0)
-                {
-                    continue;
-                }
-
-                var key = parts[0].Trim('?', ' ');
-                var val = parts[1].Trim();
-
-                queryParameters.Add(key, val);
-            }
-
-            return queryParameters;
         }
 
         private static string ToQueryString(NameValueCollection nvc)
@@ -198,7 +147,7 @@
                         continue;
                     }
                     sb.Append(sb.Length == 0 ? "?" : "&");
-                    sb.AppendFormat("{0}={1}", Uri.EscapeDataString(key), Uri.EscapeDataString(value));
+                    sb.Append($"{Uri.EscapeDataString(key)}={Uri.EscapeDataString(value)}");
                 }
             }
 

@@ -23,6 +23,8 @@
 
         Task<IEnumerable<User>> GetBySiteAsync(int siteId, bool? isActive);
 
+        Task<IEnumerable<UserFunctionPolicy>> GetBySiteAndFunctionKeyAsync(int siteId, string functionKey);
+
         int GetUserLevel(int userId, int siteId);
 
         Task<int> GetUserLevelAsync(int userId, int siteId);
@@ -58,15 +60,17 @@
 
     public class UserService : IUserService
     {
+        private readonly IUserClient userClient;
+        public UserService(IUserClient userClient)
+        {
+            this.userClient = userClient;
+        }
+
         public IEnumerable<MenuItem> GetMenuItem(int userId, int siteId, string environment = Constant.UAT)
             => GetMenuItemAsync(userId, siteId, environment).Result;
 
         public async Task<IEnumerable<MenuItem>> GetMenuItemAsync(int userId, int siteId, string environment = Constant.UAT)
         {
-            Check.Argument.IsNotNegativeOrZero(userId, "userId");
-            Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-            Check.Argument.IsNotEmpty(environment, "environment");
-            var userClient = new UserClient();
             return await userClient.GetMenuItem(userId, siteId, environment).ConfigureAwait(false);
         }
 
@@ -75,9 +79,6 @@
 
         public async Task<IEnumerable<SiteLevel>> GetSiteLevelAsync(int userId, string environment = Constant.UAT)
         {
-            Check.Argument.IsNotNegativeOrZero(userId, "userId");
-            Check.Argument.IsNotEmpty(environment, "environment");
-            var userClient = new UserClient();
             var siteLevels = await userClient.GetSiteLevel(userId, environment).ConfigureAwait(false);
             return siteLevels.OrderBy(s => s.SiteId).ToList();
 
@@ -87,8 +88,6 @@
 
         public async Task<User> GetAsync(int userId)
         {
-            Check.Argument.IsNotNegativeOrZero(userId, "userId");
-            var userClient = new UserClient();
             return await userClient.Get(userId).ConfigureAwait(false);
         }
 
@@ -96,8 +95,6 @@
 
         public async Task<User> GetAsync(string username)
         {
-            Check.Argument.IsNotEmpty(username, "username");
-            var userClient = new UserClient();
             return await userClient.Get(username).ConfigureAwait(false);
         }
 
@@ -105,17 +102,18 @@
 
         public async Task<IEnumerable<User>> GetBySiteAsync(int siteId, bool? isActive)
         {
-            var userClient = new UserClient();
             return await userClient.GetBySite(siteId, isActive).ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<UserFunctionPolicy>> GetBySiteAndFunctionKeyAsync(int siteId, string functionKey)
+        {
+            return await userClient.GetBySiteAndFunctionKeyAsync(siteId, functionKey).ConfigureAwait(false);
         }
 
         public int GetUserLevel(int userId, int siteId) => GetUserLevelAsync(userId, siteId).Result;
 
         public async Task<int> GetUserLevelAsync(int userId, int siteId)
         {
-            Check.Argument.IsNotNegativeOrZero(userId, "userId");
-            Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-            var userClient = new UserClient();
             return await userClient.GetUserLevel(userId, siteId).ConfigureAwait(false);
         }
 
@@ -123,10 +121,6 @@
 
         public async Task<int> GetPermissionAsync(int userId, int siteId, string functionKey)
         {
-            Check.Argument.IsNotNegativeOrZero(userId, "userId");
-            Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-            Check.Argument.IsNotEmpty(functionKey, "functionKey");
-            var userClient = new UserClient();
             return await userClient.GetPermission(userId, siteId, functionKey).ConfigureAwait(false);
         }
 
@@ -135,9 +129,6 @@
 
         public async Task<IEnumerable<FunctionPolicy>> GetPermissionsAsync(int userId, int siteId, string parentFunctionKey, string environment = Constant.UAT)
         {
-            Check.Argument.IsNotNegativeOrZero(userId, "userId");
-            Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-            var userClient = new UserClient();
             var permissions= await userClient.GetPermissions(userId, siteId, parentFunctionKey, environment).ConfigureAwait(false);
 
             return permissions.OrderBy(p => p.Id).ToList();
@@ -163,7 +154,6 @@
 
         public async Task<bool> IgnoredOtpAsync(int userId, string system)
         {
-            var userClient = new UserClient();
             return await userClient.IgnoredOtpAsync(userId, system);
         }
 
@@ -171,7 +161,6 @@
 
         public async Task<bool> VerifyOtpAsync(int userId, string system, string otp)
         {
-            var userClient = new UserClient();
             return await userClient.VerifyOtpAsync(userId, system, otp);
         }
 

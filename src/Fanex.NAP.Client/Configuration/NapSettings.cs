@@ -2,16 +2,12 @@
 {
     using System;
     using System.ComponentModel;
-    using Microsoft.Extensions.Configuration;
+    using System.Configuration;
 
     public class NapSettings : INapSettings
     {
-        private readonly IConfiguration configuration;
-
-        public NapSettings(IConfiguration configuration)
+        public NapSettings()
         {
-            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-
             SiteId = GetValue<int>("Fanex.NAP.Client:SiteId");
             EnableDirectLogin = GetBooleanValue("Fanex.NAP.Client:EnableDirectLogin");
             EnableReCheckIn = GetBooleanValue("Fanex.NAP.Client:EnableReCheckIn");
@@ -50,7 +46,7 @@
 
         private T GetValue<T>(string key)
         {
-            var value = configuration[key];
+           var value = ConfigurationManager.AppSettings[key];
 
             var typeConverter = TypeDescriptor.GetConverter(typeof(T));
 
@@ -59,7 +55,7 @@
 
         private bool GetBooleanValue(string key)
         {
-            var value = configuration[key];
+           var value = ConfigurationManager.AppSettings[key];
             if (string.IsNullOrEmpty(value))
             {
                 return false;

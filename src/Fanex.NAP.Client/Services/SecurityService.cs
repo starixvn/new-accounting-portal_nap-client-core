@@ -34,12 +34,24 @@
 
     public class SecurityService : ISecurityService
     {
+        private readonly ILoginClient loginClient;
+        private readonly ILogoutClient logoutClient;
+        private readonly ICheckinClient checkinClient;
+        private readonly ISSOClient ssoClient;
+        private readonly IUserInfoClient userInfoClient;
+
+        public SecurityService(ILoginClient loginClient, ILogoutClient logoutClient, ICheckinClient checkinClient, ISSOClient ssoClient, IUserInfoClient userInfoClient)
+        {
+            this.loginClient = loginClient;
+            this.logoutClient = logoutClient;
+            this.checkinClient = checkinClient;
+            this.ssoClient = ssoClient;
+            this.userInfoClient = userInfoClient;
+        }
         public int Login(LoginParameter parameter) => LoginAsync(parameter).Result;
 
         public async Task<int> LoginAsync(LoginParameter parameter)
         {
-            Check.Argument.IsNotNull(parameter, "parameter");
-            var loginClient = new LoginClient();
             return await loginClient.Login(parameter).ConfigureAwait(false);
         }
 
@@ -47,8 +59,6 @@
 
         public async Task LogoutAsync(int onlineUserId)
         {
-            Check.Argument.IsNotNegativeOrZero(onlineUserId, "onlineUserId");
-            var logoutClient = new LogoutClient();
             await logoutClient.Logout(onlineUserId).ConfigureAwait(false);
         }
 
@@ -56,9 +66,6 @@
 
         public async Task<int> ReCheckInAsync(int onlineUserId, int siteId)
         {
-            Check.Argument.IsNotNegativeOrZero(onlineUserId, "onlineUserId");
-            Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-            var checkinClient = new CheckinClient();
             return await checkinClient.ReCheckIn(onlineUserId, siteId).ConfigureAwait(false);
         }
 
@@ -66,7 +73,6 @@
 
         public async Task<string> GetTimeAsync()
         {
-            var ssoClient = new SSOClient();
             return await ssoClient.GetTime().ConfigureAwait(false);
         }
 
@@ -74,8 +80,6 @@
 
         public async Task<int> SSOLoginAsync(SSOLoginParameter parameter)
         {
-            Check.Argument.IsNotNull(parameter, "parameter");
-            var ssoClient = new SSOClient();
             return await ssoClient.Login(parameter).ConfigureAwait(false);
         }
 
@@ -84,10 +88,6 @@
 
         public async Task<bool> UpdatePasswordAsync(int siteId, int userId, string password)
         {
-            Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-            Check.Argument.IsNotNegativeOrZero(userId, "parameter");
-            Check.Argument.IsNotEmpty(password, "password");
-            var userInfoClient = new UserInfoClient();
             return await userInfoClient.UpdatePassword(siteId, userId, password).ConfigureAwait(false);
         }
     }

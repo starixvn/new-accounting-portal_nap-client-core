@@ -1,5 +1,6 @@
 ﻿namespace Fanex.NAP.Client.Clients
 {
+    using System.Net.Http;
     using System.Threading.Tasks;
     using Models;
 
@@ -8,11 +9,15 @@
         Task<Group> Get(int groupId);
     }
 
-    internal class GroupClient : BaseClient, IGroupClient
+    public class GroupClient : BaseClient, IGroupClient
     {
+        public GroupClient(HttpClient httpClient) : base(httpClient)
+        {
+        }
+
         public async Task<Group> Get(int groupId)
         {
-            return await Get<Group>(CreateRequestUri(string.Format(RelativePaths.Get, groupId)));
+            return await Get<Group>(CreateRequestPath(string.Format(RelativePaths.Get, groupId)));
         }
 
         private static class RelativePaths

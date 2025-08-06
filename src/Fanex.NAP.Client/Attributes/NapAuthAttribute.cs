@@ -10,40 +10,19 @@
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Mvc.Filters;
     using Microsoft.Extensions.Caching.Memory;
+    using Microsoft.Extensions.DependencyInjection;
     using Services;
 
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     public class NapAuthAttribute : Attribute, IAuthorizationFilter
     {
-        private readonly IMemoryCache cache;
-        private int cacheDuration;
-        private readonly IUserService userService;
-        private readonly INapSettings napSettings;
-        private readonly INapSession napSession;
-
-        public NapAuthAttribute() : this(null, null, null, null)
-        {
-        }
-
-        internal NapAuthAttribute(IUserService userService, INapSettings napSettings, INapSession napSession, IMemoryCache cache)
-        {
-            this.userService = userService ?? new UserService();
-            this.napSettings = napSettings ?? NapClientManager.NapSettings;
-            this.napSession = napSession ?? NapClientManager.NapSession;
-            this.cache = cache ?? new MemoryCache(new MemoryCacheOptions());
-        }
-
         public string FunctionKey { get; set; }
 
         public Constant.Policy Policy { get; set; }
 
         public bool PermissionCache { get; set; }
 
-        public int CacheDuration
-        {
-            get => cacheDuration == 0 ? napSettings.CacheDuration : cacheDuration;
-            set => cacheDuration = value;
-        }
+        public int CacheDuration { get; set; } = 60;
 
         public void OnAuthorization(AuthorizationFilterContext filterContext)
         {
@@ -62,11 +41,12 @@
                 return;
             }
 
-            if (!UserHasValidFunctionPolicy(napSession))
+            if (!UserHasValidFunctionPolicy(filterContext))
             {
                 return;
             }
 
+            var napSettings = filterContext.HttpContext.RequestServices.GetRequiredService<INapSettings>();
             var unauthorizeUrl = napSettings.UnauthorizeUrl;
             filterContext.Result = new RedirectResult(string.IsNullOrEmpty(unauthorizeUrl)
                 ? "~/Unauthorize"
@@ -96,29 +76,18 @@
             return identity != null && identity.IsAuthenticated;
         }
 
-        private bool UserHasValidFunctionPolicy(INapSession currentSession)
+        private bool UserHasValidFunctionPolicy(AuthorizationFilterContext context)
         {
-            int policy;
-
-            if (PermissionCache)
+            var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
+            var cache = context.HttpContext.RequestServices.GetRequiredService<IMemoryCache>();
+            var napSettings = context.HttpContext.RequestServices.GetRequiredService<INapSettings>();
+            var currentSession = context.HttpContext.RequestServices.GetRequiredService<INapSession>();
+            var cacheKey = $"{currentSession.UserId}_{napSettings.SiteId}_{FunctionKey}";
+            var policy = cache.GetOrCreate(cacheKey, entry =>
             {
-                var cacheKey = $"{currentSession.UserId}_{napSettings.SiteId}_{FunctionKey}";
-                var cachedPolicy = cache.Get(cacheKey);
-
-                if (cachedPolicy == null)
-                {
-                    policy = userService.GetPermission(currentSession.UserId, napSettings.SiteId, FunctionKey);
-                    cache.Set(cacheKey, policy, DateTime.Now.AddSeconds(CacheDuration));
-                }
-                else
-                {
-                    policy = (int)cachedPolicy;
-                }
-            }
-            else
-            {
-                policy = userService.GetPermission(currentSession.UserId, napSettings.SiteId, FunctionKey);
-            }
+                entry.AbsoluteExpiration = DateTimeOffset.Now.AddSeconds(CacheDuration);
+                return userService.GetPermission(currentSession.UserId, napSettings.SiteId, FunctionKey);
+            });
 
             return policy < (int)Policy;
         }

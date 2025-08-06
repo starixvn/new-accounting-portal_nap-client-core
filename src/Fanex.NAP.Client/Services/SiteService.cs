@@ -15,14 +15,18 @@
 
     public class SiteService : ISiteService
     {
+        private readonly ISiteClient siteClient;
+
+        public SiteService(ISiteClient siteClient)
+        {
+            this.siteClient = siteClient;
+        }
+
         public IEnumerable<MenuItem> GetMenuItemBySiteId(int siteId, string environment, bool? isActive = null)
             => GetMenuItemBySiteIdAsync(siteId, environment, isActive).Result;
 
         public async Task<IEnumerable<MenuItem>> GetMenuItemBySiteIdAsync(int siteId, string environment, bool? isActive = null)
         {
-            Check.Argument.IsNotNegativeOrZero(siteId, "siteId");
-            Check.Argument.IsNotEmpty(environment, "environment");
-            var siteClient = new SiteClient();
             return await siteClient.GetMenuItemBySiteId(siteId, environment, isActive).ConfigureAwait(false);
         }
     }

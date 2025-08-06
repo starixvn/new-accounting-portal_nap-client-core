@@ -46,7 +46,7 @@ public class SessionAuthorizeAttribute : AuthorizeAttribute, IAuthorizationFilte
     {
         var identity = filterContext?.HttpContext.User.Identity;
 
-        return identity is { IsAuthenticated: true };
+        return identity != null && identity.IsAuthenticated;
     }
 
     protected bool SessionIsValid()

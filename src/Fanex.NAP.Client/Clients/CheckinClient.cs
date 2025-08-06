@@ -1,17 +1,22 @@
 ﻿namespace Fanex.NAP.Client.Clients
 {
+    using System.Net.Http;
     using System.Threading.Tasks;
 
-    internal interface ICheckinClient
+    public interface ICheckinClient
     {
         Task<int> ReCheckIn(int onlineUserId, int siteId);
     }
 
-    internal class CheckinClient : BaseClient, ICheckinClient
+    public class CheckinClient : BaseClient, ICheckinClient
     {
+        public CheckinClient(HttpClient httpClient) : base(httpClient)
+        {
+        }
+
         public async Task<int> ReCheckIn(int onlineUserId, int siteId)
         {
-            return await Get<int>(CreateRequestUri(RelativePaths.ReCheckIn, new { onUserId = onlineUserId, siteId }));
+            return await Get<int>(CreateRequestPath(RelativePaths.ReCheckIn, new { onUserId = onlineUserId, siteId }));
         }
 
         private static class RelativePaths

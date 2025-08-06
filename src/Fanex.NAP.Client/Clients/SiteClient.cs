@@ -1,19 +1,24 @@
 ﻿namespace Fanex.NAP.Client.Clients
 {
     using System.Collections.Generic;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using Models;
 
-    internal interface ISiteClient
+    public interface ISiteClient
     {
         Task<IEnumerable<MenuItem>> GetMenuItemBySiteId(int siteId, string env, bool? isActive = null);
     }
 
-    internal class SiteClient : BaseClient, ISiteClient
+    public class SiteClient : BaseClient, ISiteClient
     {
+        public SiteClient(HttpClient httpClient) : base(httpClient)
+        {
+        }
+
         public async Task<IEnumerable<MenuItem>> GetMenuItemBySiteId(int siteId, string env, bool? isActive = null)
         {
-            return await Get<IEnumerable<MenuItem>>(CreateRequestUri(string.Format(RelativePaths.GetMenuItemBySiteId, siteId), new { environment = env, isActive }));
+            return await Get<IEnumerable<MenuItem>>(CreateRequestPath(string.Format(RelativePaths.GetMenuItemBySiteId, siteId), new { environment = env, isActive }));
         }
 
         private static class RelativePaths

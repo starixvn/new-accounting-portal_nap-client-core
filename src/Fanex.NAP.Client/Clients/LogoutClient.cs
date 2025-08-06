@@ -1,17 +1,22 @@
 ﻿namespace Fanex.NAP.Client.Clients
 {
+    using System.Net.Http;
     using System.Threading.Tasks;
 
-    internal interface ILogoutClient
+    public interface ILogoutClient
     {
         Task Logout(int onlineUserId);
     }
 
-    internal class LogoutClient : BaseClient, ILogoutClient
+    public class LogoutClient : BaseClient, ILogoutClient
     {
+        public LogoutClient(HttpClient httpClient) : base(httpClient)
+        {
+        }
+
         public async Task Logout(int onlineUserId)
         {
-            await Get<int>(CreateRequestUri(string.Format(RelativePaths.Logout, onlineUserId)));
+            await Get<int>(CreateRequestPath(string.Format(RelativePaths.Logout, onlineUserId)));
         }
 
         private static class RelativePaths

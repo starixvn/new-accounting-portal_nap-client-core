@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using Clients;
-    using Helpers.Common;
     using Models;
 
     public interface IGroupService
@@ -14,13 +13,16 @@
 
     public class GroupService : IGroupService
     {
+        private readonly IGroupClient groupClient;
+        public GroupService(IGroupClient groupClient)
+        {
+            this.groupClient = groupClient;
+        }
+
         public Group Get(int groupId) => GetAsync(groupId).Result;
 
         public async Task<Group> GetAsync(int groupId)
         {
-            Check.Argument.IsNotNegativeOrZero(groupId, "groupId");
-            var groupClient = new GroupClient();
-
             return await groupClient.Get(groupId);
         }
     }
